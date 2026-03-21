@@ -7,11 +7,9 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   const links = [
-    { href: "/", label: "الرئيسية" },
-    { href: "/features", label: "الميزات" },
-    { href: "/blog", label: "المدونة" },
-    { href: "/download", label: "تحميل" },
-    { href: "/admin", label: "لوحة الإدارة" },
+    { href: '/', label: 'الرئيسية' },
+    { href: '/features', label: 'الميزات' },
+    { href: '/download', label: 'تحميل' },
   ];
 
   return (
@@ -30,7 +28,7 @@ export default function Navbar() {
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-              aria-label={isOpen ? "إغلاق القائمة" : "فتح القائمة"}
+              aria-label={isOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
             >
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 {isOpen ? (

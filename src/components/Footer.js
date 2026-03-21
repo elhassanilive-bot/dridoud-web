@@ -18,7 +18,10 @@ export default function Footer() {
               منصة عربية حديثة للتواصل، تجمع القصص، القنوات، المجموعات، والدردشة في مكان واحد آمن وسريع.
             </p>
             <p className="text-gray-400 mt-4 text-sm">
-              تواصل معنا عبر: <a className="text-red-400 hover:text-red-300" href={`mailto:${site.supportEmail}`}>{site.supportEmail}</a>
+              تواصل معنا عبر:{' '}
+              <a className="text-red-400 hover:text-red-300" href={`mailto:${site.supportEmail}`}>
+                {site.supportEmail}
+              </a>
             </p>
           </div>
 
@@ -36,11 +39,6 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/blog" className="text-gray-400 hover:text-red-500 transition-colors">
-                  المدونة
-                </Link>
-              </li>
-              <li>
                 <Link href="/about" className="text-gray-400 hover:text-red-500 transition-colors">
                   من نحن
                 </Link>
@@ -48,11 +46,6 @@ export default function Footer() {
               <li>
                 <Link href="/download" className="text-gray-400 hover:text-red-500 transition-colors">
                   تحميل
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin" className="text-gray-400 hover:text-red-500 transition-colors">
-                  لوحة الإدارة
                 </Link>
               </li>
             </ul>
@@ -164,9 +157,7 @@ export default function Footer() {
         )}
 
         <div className="border-t border-gray-800 pt-8">
-          <p className="text-gray-400 text-center">
-            &copy; {currentYear} دريدود. جميع الحقوق محفوظة.
-          </p>
+          <p className="text-gray-400 text-center">&copy; {currentYear} دريدود. جميع الحقوق محفوظة.</p>
         </div>
       </div>
     </footer>

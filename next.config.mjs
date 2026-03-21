@@ -1,5 +1,29 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async redirects() {
+    return [
+      {
+        source: "/blog",
+        destination: "/",
+        permanent: true,
+      },
+      {
+        source: "/blog/:slug",
+        destination: "/",
+        permanent: true,
+      },
+      {
+        source: "/admin",
+        destination: "/",
+        permanent: true,
+      },
+      {
+        source: "/admin/blog",
+        destination: "/",
+        permanent: true,
+      },
+    ];
+  },
   experimental: {
     cpus: 1,
   },
