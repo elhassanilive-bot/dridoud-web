@@ -1,24 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+Dridoud website built with [Next.js](https://nextjs.org) (Arabic RTL landing site).
 
 ## Getting Started
 
-First, run the development server:
+1) Install dependencies:
+
+```bash
+npm install
+```
+
+2) Create your env file (placeholders are provided):
+
+```bash
+copy .env.example .env.local
+```
+
+3) Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Supabase (optional)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Add your real values to `.env.local`:
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- Client helper lives in `src/lib/supabase/client.js`.
+
+## Notes
+
+- Uses `next/font` to load an Arabic font (Cairo).
 
 ## Learn More
 
