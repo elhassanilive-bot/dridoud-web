@@ -1,8 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8f3e6;
+  --foreground: #1f1a12;
+  --gold-50: #fff8e1;
+  --gold-100: #ffefbf;
+  --gold-200: #f5d27a;
+  --gold-300: #eabf52;
+  --gold-400: #d9a732;
+  --gold-500: #c08a16;
+  --gold-600: #9b6e0f;
+  --gold-700: #7a560b;
+  --gold-800: #5c4108;
+  --gold-900: #3f2c05;
 }
 
 @theme inline {
@@ -22,4 +32,268 @@ body {
   color: var(--foreground);
   font-family: "Cairo", "Tajawal", "Noto Kufi Arabic", "Noto Sans Arabic", system-ui, -apple-system,
     "Segoe UI", Arial, sans-serif;
+  background-image:
+    radial-gradient(circle at top right, rgba(192, 138, 22, 0.14), transparent 26%),
+    radial-gradient(circle at left center, rgba(122, 86, 11, 0.11), transparent 24%),
+    linear-gradient(180deg, #fffaf0 0%, #f8f3e6 100%);
+}
+
+/* Global red/rose -> dark gold mapping */
+.text-red-100,
+.text-rose-100 {
+  color: var(--gold-100) !important;
+}
+
+.text-red-200,
+.text-rose-200 {
+  color: var(--gold-200) !important;
+}
+
+.text-red-300,
+.text-rose-300 {
+  color: var(--gold-300) !important;
+}
+
+.text-red-400,
+.text-rose-400 {
+  color: var(--gold-400) !important;
+}
+
+.text-red-500,
+.text-rose-500 {
+  color: var(--gold-500) !important;
+}
+
+.text-red-600,
+.text-rose-600 {
+  color: var(--gold-600) !important;
+}
+
+.text-red-700,
+.text-rose-700 {
+  color: var(--gold-700) !important;
+}
+
+.text-red-800,
+.text-rose-800 {
+  color: var(--gold-800) !important;
+}
+
+.text-red-900,
+.text-rose-900 {
+  color: var(--gold-900) !important;
+}
+
+.bg-red-50,
+.bg-rose-50 {
+  background-color: var(--gold-50) !important;
+}
+
+.bg-red-100,
+.bg-rose-100 {
+  background-color: var(--gold-100) !important;
+}
+
+.bg-red-400 {
+  background-color: var(--gold-500) !important;
+}
+
+.bg-red-500,
+.bg-rose-500 {
+  background-color: var(--gold-600) !important;
+}
+
+.bg-red-600,
+.bg-rose-600 {
+  background-color: var(--gold-700) !important;
+}
+
+.bg-red-700,
+.bg-rose-700 {
+  background-color: var(--gold-800) !important;
+}
+
+.bg-red-800,
+.bg-rose-800 {
+  background-color: var(--gold-900) !important;
+}
+
+.bg-red-900,
+.bg-red-950 {
+  background-color: var(--gold-900) !important;
+}
+
+.border-red-200,
+.border-rose-200 {
+  border-color: var(--gold-200) !important;
+}
+
+.border-red-300,
+.border-rose-300 {
+  border-color: var(--gold-300) !important;
+}
+
+.border-red-400,
+.border-rose-400 {
+  border-color: var(--gold-400) !important;
+}
+
+.border-red-500,
+.border-rose-500 {
+  border-color: var(--gold-500) !important;
+}
+
+.border-red-600,
+.border-rose-600 {
+  border-color: var(--gold-600) !important;
+}
+
+.hover\:bg-red-700:hover,
+.hover\:bg-rose-700:hover {
+  background-color: var(--gold-900) !important;
+}
+
+.hover\:bg-red-800:hover,
+.hover\:bg-rose-800:hover {
+  background-color: #2f2104 !important;
+}
+
+.hover\:text-red-500:hover,
+.hover\:text-rose-500:hover {
+  color: var(--gold-500) !important;
+}
+
+.hover\:text-red-700:hover,
+.hover\:text-rose-700:hover {
+  color: var(--gold-700) !important;
+}
+
+.focus\:border-red-500:focus {
+  border-color: var(--gold-500) !important;
+}
+
+.from-red-50 {
+  --tw-gradient-from: var(--gold-50) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(255, 248, 225, 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+.to-rose-100 {
+  --tw-gradient-to: var(--gold-100) var(--tw-gradient-to-position) !important;
+}
+
+.from-red-500 {
+  --tw-gradient-from: var(--gold-600) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(155, 110, 15, 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+.to-rose-500 {
+  --tw-gradient-to: var(--gold-700) var(--tw-gradient-to-position) !important;
+}
+
+.from-red-600 {
+  --tw-gradient-from: var(--gold-700) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(122, 86, 11, 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+.to-rose-700 {
+  --tw-gradient-to: var(--gold-800) var(--tw-gradient-to-position) !important;
+}
+
+.from-red-800 {
+  --tw-gradient-from: var(--gold-800) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(92, 65, 8, 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+.via-red-900 {
+  --tw-gradient-to: rgba(63, 44, 5, 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--gold-900) var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+}
+
+.to-rose-950 {
+  --tw-gradient-to: #2f2104 var(--tw-gradient-to-position) !important;
+}
+
+/* Cyan/Teal accents used in some sections -> gold */
+.text-cyan-500,
+.text-teal-500 {
+  color: var(--gold-500) !important;
+}
+
+.text-cyan-600,
+.text-teal-600 {
+  color: var(--gold-600) !important;
+}
+
+.text-cyan-700,
+.text-teal-700 {
+  color: var(--gold-700) !important;
+}
+
+.bg-cyan-50,
+.bg-teal-50 {
+  background-color: var(--gold-50) !important;
+}
+
+.border-cyan-300,
+.border-teal-300 {
+  border-color: var(--gold-300) !important;
+}
+
+/* Dark-mode red variants */
+.dark\:bg-red-900\/40 {
+  background-color: rgba(92, 65, 8, 0.4) !important;
+}
+
+.dark\:bg-red-900\/50 {
+  background-color: rgba(92, 65, 8, 0.5) !important;
+}
+
+.dark\:bg-red-900\/60 {
+  background-color: rgba(92, 65, 8, 0.6) !important;
+}
+
+.dark\:bg-red-950\/40 {
+  background-color: rgba(63, 44, 5, 0.4) !important;
+}
+
+.dark\:text-red-100 {
+  color: #ffe8a8 !important;
+}
+
+.dark\:text-red-200 {
+  color: var(--gold-200) !important;
+}
+
+.dark\:text-red-300 {
+  color: var(--gold-300) !important;
+}
+
+.dark\:text-red-400 {
+  color: var(--gold-400) !important;
+}
+
+.dark\:text-red-500 {
+  color: var(--gold-500) !important;
+}
+
+.dark\:border-red-500\/40 {
+  border-color: rgba(192, 138, 22, 0.4) !important;
+}
+
+.dark\:border-red-500\/60 {
+  border-color: rgba(192, 138, 22, 0.6) !important;
+}
+
+.dark\:border-red-600\/40 {
+  border-color: rgba(155, 110, 15, 0.4) !important;
+}
+
+/* Shadow helpers */
+.shadow-red-500\/10,
+.shadow-red-500\/20 {
+  --tw-shadow-color: rgba(122, 86, 11, 0.28) !important;
 }
