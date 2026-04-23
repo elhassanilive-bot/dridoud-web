@@ -1,18 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8f3e6;
-  --foreground: #1f1a12;
-  --gold-50: #fff8e1;
-  --gold-100: #ffefbf;
-  --gold-200: #f5d27a;
-  --gold-300: #eabf52;
-  --gold-400: #d9a732;
-  --gold-500: #c08a16;
-  --gold-600: #9b6e0f;
-  --gold-700: #7a560b;
-  --gold-800: #5c4108;
-  --gold-900: #3f2c05;
+  --background: #f3fff8;
+  --foreground: #0c1b12;
+  --gold-50: #f1fff6;
+  --gold-100: #dcffe8;
+  --gold-200: #b8f5ce;
+  --gold-300: #88e8af;
+  --gold-400: #57d88d;
+  --gold-500: #2ebf69;
+  --gold-600: #16934f;
+  --gold-700: #0f6e3a;
+  --gold-800: #0a4b28;
+  --gold-900: #052d17;
 }
 
 @theme inline {
@@ -33,12 +33,12 @@ body {
   font-family: "Cairo", "Tajawal", "Noto Kufi Arabic", "Noto Sans Arabic", system-ui, -apple-system,
     "Segoe UI", Arial, sans-serif;
   background-image:
-    radial-gradient(circle at top right, rgba(192, 138, 22, 0.14), transparent 26%),
-    radial-gradient(circle at left center, rgba(122, 86, 11, 0.11), transparent 24%),
-    linear-gradient(180deg, #fffaf0 0%, #f8f3e6 100%);
+    radial-gradient(circle at top right, rgba(46, 191, 105, 0.14), transparent 26%),
+    radial-gradient(circle at left center, rgba(15, 110, 58, 0.11), transparent 24%),
+    linear-gradient(180deg, #fcfffd 0%, #f3fff8 100%);
 }
 
-/* Global red/rose -> dark gold mapping */
+/* Global red/rose -> black and light-green mapping */
 .text-red-100,
 .text-rose-100 {
   color: var(--gold-100) !important;
@@ -155,7 +155,7 @@ body {
 
 .hover\:bg-red-800:hover,
 .hover\:bg-rose-800:hover {
-  background-color: #2f2104 !important;
+  background-color: #041f10 !important;
 }
 
 .hover\:text-red-500:hover,
@@ -174,7 +174,7 @@ body {
 
 .from-red-50 {
   --tw-gradient-from: var(--gold-50) var(--tw-gradient-from-position) !important;
-  --tw-gradient-to: rgba(255, 248, 225, 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-to: rgba(241, 255, 246, 0) var(--tw-gradient-to-position) !important;
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
 }
 
@@ -184,7 +184,7 @@ body {
 
 .from-red-500 {
   --tw-gradient-from: var(--gold-600) var(--tw-gradient-from-position) !important;
-  --tw-gradient-to: rgba(155, 110, 15, 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-to: rgba(22, 147, 79, 0) var(--tw-gradient-to-position) !important;
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
 }
 
@@ -194,7 +194,7 @@ body {
 
 .from-red-600 {
   --tw-gradient-from: var(--gold-700) var(--tw-gradient-from-position) !important;
-  --tw-gradient-to: rgba(122, 86, 11, 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-to: rgba(15, 110, 58, 0) var(--tw-gradient-to-position) !important;
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
 }
 
@@ -204,20 +204,20 @@ body {
 
 .from-red-800 {
   --tw-gradient-from: var(--gold-800) var(--tw-gradient-from-position) !important;
-  --tw-gradient-to: rgba(92, 65, 8, 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-to: rgba(10, 75, 40, 0) var(--tw-gradient-to-position) !important;
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
 }
 
 .via-red-900 {
-  --tw-gradient-to: rgba(63, 44, 5, 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-to: rgba(5, 45, 23, 0) var(--tw-gradient-to-position) !important;
   --tw-gradient-stops: var(--tw-gradient-from), var(--gold-900) var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
 }
 
 .to-rose-950 {
-  --tw-gradient-to: #2f2104 var(--tw-gradient-to-position) !important;
+  --tw-gradient-to: #041f10 var(--tw-gradient-to-position) !important;
 }
 
-/* Cyan/Teal accents used in some sections -> gold */
+/* Cyan/Teal accents used in some sections -> light green */
 .text-cyan-500,
 .text-teal-500 {
   color: var(--gold-500) !important;
@@ -245,23 +245,23 @@ body {
 
 /* Dark-mode red variants */
 .dark\:bg-red-900\/40 {
-  background-color: rgba(92, 65, 8, 0.4) !important;
+  background-color: rgba(10, 75, 40, 0.4) !important;
 }
 
 .dark\:bg-red-900\/50 {
-  background-color: rgba(92, 65, 8, 0.5) !important;
+  background-color: rgba(10, 75, 40, 0.5) !important;
 }
 
 .dark\:bg-red-900\/60 {
-  background-color: rgba(92, 65, 8, 0.6) !important;
+  background-color: rgba(10, 75, 40, 0.6) !important;
 }
 
 .dark\:bg-red-950\/40 {
-  background-color: rgba(63, 44, 5, 0.4) !important;
+  background-color: rgba(5, 45, 23, 0.4) !important;
 }
 
 .dark\:text-red-100 {
-  color: #ffe8a8 !important;
+  color: #dcffe8 !important;
 }
 
 .dark\:text-red-200 {
@@ -281,19 +281,44 @@ body {
 }
 
 .dark\:border-red-500\/40 {
-  border-color: rgba(192, 138, 22, 0.4) !important;
+  border-color: rgba(46, 191, 105, 0.4) !important;
 }
 
 .dark\:border-red-500\/60 {
-  border-color: rgba(192, 138, 22, 0.6) !important;
+  border-color: rgba(46, 191, 105, 0.6) !important;
 }
 
 .dark\:border-red-600\/40 {
-  border-color: rgba(155, 110, 15, 0.4) !important;
+  border-color: rgba(22, 147, 79, 0.4) !important;
 }
 
 /* Shadow helpers */
 .shadow-red-500\/10,
 .shadow-red-500\/20 {
-  --tw-shadow-color: rgba(122, 86, 11, 0.28) !important;
+  --tw-shadow-color: rgba(15, 110, 58, 0.28) !important;
+}
+
+.text-amber-700,
+.text-amber-800,
+.text-amber-900 {
+  color: var(--gold-700) !important;
+}
+
+.hover\:text-amber-900:hover {
+  color: var(--gold-900) !important;
+}
+
+.bg-amber-50 {
+  background-color: var(--gold-50) !important;
+}
+
+.bg-amber-300\/25,
+.bg-amber-300\/30,
+.bg-amber-300\/35 {
+  background-color: rgba(46, 191, 105, 0.26) !important;
+}
+
+.border-amber-300,
+.hover\:border-amber-300:hover {
+  border-color: var(--gold-300) !important;
 }
