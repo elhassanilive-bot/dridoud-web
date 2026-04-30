@@ -1,9 +1,12 @@
 ﻿import Link from 'next/link';
+import { buildPageMetadata } from '@/lib/seo/pageMeta';
 
-export const metadata = {
+export const metadata = buildPageMetadata({
   title: 'الاتفاقيات والسياسات | دريدود',
-  description: 'كل الاتفاقيات والسياسات التي تحكم استخدام منصة دريدود، بدءاً من الاستخدام والمحتوى وصولاً إلى الخصوصية والأمان.',
-};
+  description: 'صفحة تجمع الاتفاقيات والسياسات التي تحكم استخدام منصة دريدود.',
+  path: '/agreements',
+  keywords: ['الاتفاقيات', 'السياسات', 'دريدود', 'Dridoud'],
+});
 
 const lastUpdated = new Intl.DateTimeFormat('ar-MA', { dateStyle: 'long' }).format(new Date());
 
@@ -362,3 +365,4 @@ export default function AgreementsPage() {
     </div>
   );
 }
+

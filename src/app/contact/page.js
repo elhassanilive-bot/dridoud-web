@@ -1,10 +1,12 @@
 ﻿import ContactForm from './ContactForm';
+import { buildPageMetadata } from '@/lib/seo/pageMeta';
 
-export const metadata = {
+export const metadata = buildPageMetadata({
   title: 'اتصل بنا | دريدود',
-  description: 'تواصل مباشرة مع فريق دريدود عبر نموذج حديث يصل الرسائل إلى team@dridoud.com.',
-  alternates: { canonical: '/contact' },
-};
+  description: 'تواصل مباشرة مع فريق دريدود عبر صفحة الاتصال الرسمية.',
+  path: '/contact',
+  keywords: ['اتصل بنا', 'دعم دريدود', 'Dridoud support'],
+});
 
 export default function ContactPage() {
   return (
@@ -23,3 +25,4 @@ export default function ContactPage() {
     </div>
   );
 }
+

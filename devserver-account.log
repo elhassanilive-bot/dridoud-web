@@ -1,0 +1,194 @@
+
+> dribdoweb@0.1.0 dev
+> next dev --webpack
+
+▲ Next.js 16.1.6 (webpack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.54.130:3000
+- Environments: .env.local
+- Experiments (use with caution):
+  · cpus: 1
+
+✓ Starting...
+✓ Ready in 12.2s
+○ Compiling /_not-found ...
+ GET /api/supabase/ping 404 in 27.4s (compile: 24.4s, render: 3.0s)
+○ Compiling /api/contact ...
+ GET /api/contact 405 in 7.6s (compile: 7.5s, render: 154ms)
+○ Compiling /api/supabase/ping ...
+ GET /api/supabase/ping 200 in 559ms (compile: 22ms, render: 537ms)
+○ Compiling /account ...
+ GET /account 200 in 13.1s (compile: 10.6s, render: 2.5s)
+ GET /account 200 in 2.5s (compile: 1542ms, render: 987ms)
+○ Compiling /_not-found ...
+ GET /account/me 404 in 7.7s (compile: 6.6s, render: 1105ms)
+ GET /account/me 404 in 272ms (compile: 121ms, render: 151ms)
+ GET /account/me 404 in 731ms (compile: 48ms, render: 683ms)
+ GET /account/me 404 in 6.1s (compile: 3.3s, render: 2.9s)
+ GET /account/me 404 in 2.5s (compile: 176ms, render: 2.3s)
+ GET /account/me 404 in 3.0s (compile: 139ms, render: 2.8s)
+○ Compiling /account/me ...
+ GET /account/me 200 in 5.7s (compile: 4.8s, render: 897ms)
+ GET /account/me 200 in 672ms (compile: 84ms, render: 588ms)
+ GET /account/me 200 in 305ms (compile: 103ms, render: 202ms)
+ GET /account/me 200 in 896ms (compile: 494ms, render: 402ms)
+ GET /account 200 in 2.3s (compile: 190ms, render: 2.1s)
+ GET /account/me 200 in 568ms (compile: 23ms, render: 546ms)
+○ Compiling / ...
+ GET / 200 in 13.7s (compile: 13.0s, render: 715ms)
+ GET /account 200 in 335ms (compile: 117ms, render: 218ms)
+ GET /account/me 200 in 1475ms (compile: 369ms, render: 1106ms)
+ GET /account/me 200 in 1058ms (compile: 75ms, render: 983ms)
+ GET /account/me 200 in 729ms (compile: 530ms, render: 199ms)
+ GET /account/me 200 in 734ms (compile: 35ms, render: 699ms)
+ GET /account/me 200 in 613ms (compile: 337ms, render: 277ms)
+ GET /account 200 in 789ms (compile: 35ms, render: 753ms)
+ GET /account/me 200 in 1328ms (compile: 853ms, render: 475ms)
+ GET /account/me 200 in 661ms (compile: 13ms, render: 648ms)
+ GET /account 200 in 345ms (compile: 85ms, render: 260ms)
+ GET /account 200 in 169ms (compile: 16ms, render: 154ms)
+ GET /account 200 in 209ms (compile: 14ms, render: 195ms)
+ GET /account 200 in 119ms (compile: 19ms, render: 100ms)
+ GET /account 200 in 883ms (compile: 295ms, render: 588ms)
+ GET /account 200 in 232ms (compile: 25ms, render: 207ms)
+ GET /account 404 in 422ms (compile: 227ms, render: 195ms)
+ GET /account 200 in 1044ms (compile: 35ms, render: 1009ms)
+ GET /account 200 in 304ms (compile: 91ms, render: 213ms)
+ GET /account/me 200 in 1809ms (compile: 72ms, render: 1737ms)
+ GET /account/me 200 in 1232ms (compile: 330ms, render: 902ms)
+○ Compiling /[username] ...
+Error: Route "/[username]" used `params.username`. `params` is a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PublicProfilePage (src\app\[username]\page.js:106:23)
+  104 |
+  105 | export default async function PublicProfilePage({ params }) {
+> 106 |   const username = `${params?.username || ''}`.trim();
+      |                       ^
+  107 |   const client = getPublicClient();
+  108 |   if (!client || !username) notFound();
+  109 |
+Error: Route "/[username]" used `params.username`. `params` is a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at Module.generateMetadata (src\app\[username]\page.js:97:20)
+    at eval (..\..\src\lib\metadata\resolve-metadata.ts:529:21)
+    at Object.assign.$$original (..\..\src\lib\metadata\resolve-metadata.ts:521:21)
+    at getResult (..\..\src\lib\metadata\resolve-metadata.ts:1058:18)
+    at prerenderMetadata (..\..\src\lib\metadata\resolve-metadata.ts:1002:5)
+    at accumulateMetadata (..\..\src\lib\metadata\resolve-metadata.ts:1121:31)
+    at resolveMetadata (..\..\src\lib\metadata\resolve-metadata.ts:1261:10)
+   95 |
+   96 | export async function generateMetadata({ params }) {
+>  97 |   const username = params?.username || '';
+      |                    ^
+   98 |   return {
+   99 |     title: `@${username}`,
+  100 |     description: `الملف الشخصي للمستخدم @${username} على دريدود.`,
+ GET /ehab 404 in 48s (compile: 42s, render: 5.9s)
+Error: Route "/[username]" used `params.username`. `params` is a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PublicProfilePage (src\app\[username]\page.js:106:23)
+  104 |
+  105 | export default async function PublicProfilePage({ params }) {
+> 106 |   const username = `${params?.username || ''}`.trim();
+      |                       ^
+  107 |   const client = getPublicClient();
+  108 |   if (!client || !username) notFound();
+  109 |
+Error: Route "/[username]" used `params.username`. `params` is a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at Module.generateMetadata (src\app\[username]\page.js:97:20)
+    at eval (..\..\src\lib\metadata\resolve-metadata.ts:529:21)
+    at Object.assign.$$original (..\..\src\lib\metadata\resolve-metadata.ts:521:21)
+    at getResult (..\..\src\lib\metadata\resolve-metadata.ts:1058:18)
+    at prerenderMetadata (..\..\src\lib\metadata\resolve-metadata.ts:1002:5)
+    at accumulateMetadata (..\..\src\lib\metadata\resolve-metadata.ts:1121:31)
+    at resolveMetadata (..\..\src\lib\metadata\resolve-metadata.ts:1261:10)
+   95 |
+   96 | export async function generateMetadata({ params }) {
+>  97 |   const username = params?.username || '';
+      |                    ^
+   98 |   return {
+   99 |     title: `@${username}`,
+  100 |     description: `الملف الشخصي للمستخدم @${username} على دريدود.`,
+ GET /ehab 200 in 3.1s (compile: 1177ms, render: 1954ms)
+ GET /account/me 200 in 1439ms (compile: 103ms, render: 1336ms)
+Error: Route "/[username]" used `params.username`. `params` is a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PublicProfilePage (src\app\[username]\page.js:106:23)
+  104 |
+  105 | export default async function PublicProfilePage({ params }) {
+> 106 |   const username = `${params?.username || ''}`.trim();
+      |                       ^
+  107 |   const client = getPublicClient();
+  108 |   if (!client || !username) notFound();
+  109 |
+Error: Route "/[username]" used `params.username`. `params` is a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at Module.generateMetadata (src\app\[username]\page.js:97:20)
+    at eval (..\..\src\lib\metadata\resolve-metadata.ts:529:21)
+    at Object.assign.$$original (..\..\src\lib\metadata\resolve-metadata.ts:521:21)
+    at getResult (..\..\src\lib\metadata\resolve-metadata.ts:1058:18)
+    at prerenderMetadata (..\..\src\lib\metadata\resolve-metadata.ts:1002:5)
+    at accumulateMetadata (..\..\src\lib\metadata\resolve-metadata.ts:1121:31)
+    at resolveMetadata (..\..\src\lib\metadata\resolve-metadata.ts:1261:10)
+   95 |
+   96 | export async function generateMetadata({ params }) {
+>  97 |   const username = params?.username || '';
+      |                    ^
+   98 |   return {
+   99 |     title: `@${username}`,
+  100 |     description: `الملف الشخصي للمستخدم @${username} على دريدود.`,
+ GET /ehab 404 in 1560ms (compile: 149ms, render: 1411ms)
+Error: Route "/[username]" used `params.username`. `params` is a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PublicProfilePage (src\app\[username]\page.js:106:23)
+  104 |
+  105 | export default async function PublicProfilePage({ params }) {
+> 106 |   const username = `${params?.username || ''}`.trim();
+      |                       ^
+  107 |   const client = getPublicClient();
+  108 |   if (!client || !username) notFound();
+  109 |
+Error: Route "/[username]" used `params.username`. `params` is a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at Module.generateMetadata (src\app\[username]\page.js:97:20)
+    at eval (..\..\src\lib\metadata\resolve-metadata.ts:529:21)
+    at Object.assign.$$original (..\..\src\lib\metadata\resolve-metadata.ts:521:21)
+    at getResult (..\..\src\lib\metadata\resolve-metadata.ts:1058:18)
+    at prerenderMetadata (..\..\src\lib\metadata\resolve-metadata.ts:1002:5)
+    at accumulateMetadata (..\..\src\lib\metadata\resolve-metadata.ts:1121:31)
+    at resolveMetadata (..\..\src\lib\metadata\resolve-metadata.ts:1261:10)
+   95 |
+   96 | export async function generateMetadata({ params }) {
+>  97 |   const username = params?.username || '';
+      |                    ^
+   98 |   return {
+   99 |     title: `@${username}`,
+  100 |     description: `الملف الشخصي للمستخدم @${username} على دريدود.`,
+ GET /ehab 404 in 4.4s (compile: 1072ms, render: 3.3s)
+Error: Route "/[username]" used `params.username`. `params` is a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PublicProfilePage (src\app\[username]\page.js:106:23)
+  104 |
+  105 | export default async function PublicProfilePage({ params }) {
+> 106 |   const username = `${params?.username || ''}`.trim();
+      |                       ^
+  107 |   const client = getPublicClient();
+  108 |   if (!client || !username) notFound();
+  109 |
+Error: Route "/[username]" used `params.username`. `params` is a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at Module.generateMetadata (src\app\[username]\page.js:97:20)
+    at eval (..\..\src\lib\metadata\resolve-metadata.ts:529:21)
+    at Object.assign.$$original (..\..\src\lib\metadata\resolve-metadata.ts:521:21)
+    at getResult (..\..\src\lib\metadata\resolve-metadata.ts:1058:18)
+    at prerenderMetadata (..\..\src\lib\metadata\resolve-metadata.ts:1002:5)
+    at accumulateMetadata (..\..\src\lib\metadata\resolve-metadata.ts:1121:31)
+    at resolveMetadata (..\..\src\lib\metadata\resolve-metadata.ts:1261:10)
+   95 |
+   96 | export async function generateMetadata({ params }) {
+>  97 |   const username = params?.username || '';
+      |                    ^
+   98 |   return {
+   99 |     title: `@${username}`,
+  100 |     description: `الملف الشخصي للمستخدم @${username} على دريدود.`,
+ GET /ehab 404 in 904ms (compile: 46ms, render: 858ms)
+ GET /ehab 200 in 2.1s (compile: 20ms, render: 2.0s)
+ GET /ehab 200 in 7.2s (compile: 988ms, render: 6.3s)
+ GET /ehab 200 in 3.0s (compile: 44ms, render: 2.9s)
+ GET /ehab 200 in 9.8s (compile: 4.3s, render: 5.4s)
+ GET /ehab 200 in 1420ms (compile: 718ms, render: 702ms)
+ GET /ehab 200 in 2.8s (compile: 42ms, render: 2.8s)
+ GET /ehab 200 in 1633ms (compile: 587ms, render: 1046ms)
+ GET /ehab 200 in 2.8s (compile: 48ms, render: 2.7s)
+ GET /ehab 200 in 9.9s (compile: 378ms, render: 9.5s)

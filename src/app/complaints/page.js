@@ -1,10 +1,12 @@
-﻿import ComplaintsForm from './ComplaintsForm';
+﻿import { buildPageMetadata } from '@/lib/seo/pageMeta';
+import ComplaintsForm from './ComplaintsForm';
 
-export const metadata = {
+export const metadata = buildPageMetadata({
   title: 'شكاوى وبلاغات | دريدود',
-  description: 'أرسل بلاغاً عن محتوى مخالف أو مشكلة تقنية، ويصلك رد فريق دريدود بعد المراجعة.',
-  alternates: { canonical: '/complaints' },
-};
+  description: 'أرسل بلاغاً عن محتوى مخالف أو مشكلة تقنية عبر صفحة الشكاوى الرسمية في دريدود.',
+  path: '/complaints',
+  keywords: ['شكاوى', 'بلاغات', 'دريدود', 'Dridoud complaints'],
+});
 
 export default function ComplaintsPage() {
   return (
@@ -31,3 +33,4 @@ export default function ComplaintsPage() {
     </div>
   );
 }
+

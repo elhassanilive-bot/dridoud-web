@@ -1,11 +1,13 @@
-﻿import FaqAccordion from './FaqAccordion';
+﻿import { buildPageMetadata } from '@/lib/seo/pageMeta';
+import FaqAccordion from './FaqAccordion';
 import { faqSections } from './faqData';
 
-export const metadata = {
+export const metadata = buildPageMetadata({
   title: 'الأسئلة الشائعة | دريدود',
-  description: 'تصفح إجابات واضحة لأهم الأسئلة حول التسجيل، النشر، التفاعل، الأمان، والمشاكل التقنية في دريدود.',
-  alternates: { canonical: '/faq' },
-};
+  description: 'إجابات واضحة لأهم الأسئلة حول الحساب، النشر، الأمان، والدعم في Dridoud.',
+  path: '/faq',
+  keywords: ['الأسئلة الشائعة', 'FAQ', 'دريدود', 'Dridoud'],
+});
 
 export default function FaqPage() {
   return (
@@ -30,3 +32,4 @@ export default function FaqPage() {
     </div>
   );
 }
+

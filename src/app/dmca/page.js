@@ -1,7 +1,10 @@
-﻿export const metadata = {
+﻿import { buildPageMetadata } from '@/lib/seo/pageMeta';
+export const metadata = buildPageMetadata({
   title: 'سياسة حقوق النشر (DMCA) | دريدود',
-  description: 'إجراءات دريدود للتعامل مع إشعارات التعدي على حقوق النشر، الإشعار المضاد، والتكرار.',
-};
+  description: 'إجراءات دريدود للتعامل مع إشعارات حقوق النشر والإشعارات المضادة وفق مبادئ DMCA.',
+  path: '/dmca',
+  keywords: ['DMCA', 'حقوق النشر', 'دريدود', 'Dridoud'],
+});
 
 const lastUpdated = new Intl.DateTimeFormat('ar-MA', { dateStyle: 'long' }).format(new Date());
 
@@ -282,3 +285,4 @@ export default function DmcaPage() {
     </div>
   );
 }
+

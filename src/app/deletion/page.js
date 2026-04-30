@@ -1,10 +1,12 @@
-﻿import DeletionForm from './DeletionForm';
+﻿import { buildPageMetadata } from '@/lib/seo/pageMeta';
+import DeletionForm from './DeletionForm';
 
-export const metadata = {
+export const metadata = buildPageMetadata({
   title: 'طلب حذف الحساب | دريدود',
-  description: 'أرسل طلب حذف نهائي لحسابك عبر واجهة آمنة مع شرح العواقب والحماية.',
-  alternates: { canonical: '/deletion' },
-};
+  description: 'تقديم طلب حذف الحساب والبيانات بشكل آمن عبر الصفحة الرسمية لدريدود.',
+  path: '/deletion',
+  keywords: ['حذف الحساب', 'حذف البيانات', 'دريدود', 'Dridoud deletion'],
+});
 
 export default function DeletionPage() {
   return (
@@ -52,3 +54,4 @@ export default function DeletionPage() {
     </div>
   );
 }
+
