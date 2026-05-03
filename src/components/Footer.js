@@ -9,17 +9,17 @@ export default function Footer() {
   const hasSocials = Boolean(socials.x || socials.instagram || socials.youtube);
 
   return (
-    <footer className="bg-gray-900 dark:bg-gray-950 text-white py-12">
+    <footer className="bg-gradient-to-br from-red-950 via-red-900 to-rose-950 text-white py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div>
-            <h3 className="text-2xl font-bold text-red-500 mb-4">دريدود</h3>
-            <p className="text-gray-400 leading-relaxed">
+            <h3 className="text-2xl font-bold text-red-100 mb-4">دريدود</h3>
+            <p className="text-red-100/80 leading-relaxed">
               منصة عربية حديثة للتواصل، تجمع القصص، القنوات، المجموعات، والدردشة في مكان واحد آمن وسريع.
             </p>
-            <p className="text-gray-400 mt-4 text-sm">
+            <p className="text-red-100/75 mt-4 text-sm">
               تواصل معنا عبر:{' '}
-              <a className="text-red-400 hover:text-red-300" href={`mailto:${site.supportEmail}`}>
+              <a className="text-white hover:text-red-200" href={`mailto:${site.supportEmail}`}>
                 {site.supportEmail}
               </a>
             </p>
@@ -29,22 +29,22 @@ export default function Footer() {
             <h4 className="text-lg font-semibold mb-4">روابط سريعة</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/" className="text-gray-400 hover:text-red-500 transition-colors">
+                <Link href="/" className="text-red-100/75 hover:text-white transition-colors">
                   الرئيسية
                 </Link>
               </li>
               <li>
-                <Link href="/features" className="text-gray-400 hover:text-red-500 transition-colors">
+                <Link href="/features" className="text-red-100/75 hover:text-white transition-colors">
                   الميزات
                 </Link>
               </li>
               <li>
-                <Link href="/about" className="text-gray-400 hover:text-red-500 transition-colors">
+                <Link href="/about" className="text-red-100/75 hover:text-white transition-colors">
                   من نحن
                 </Link>
               </li>
               <li>
-                <Link href="/download" className="text-gray-400 hover:text-red-500 transition-colors">
+                <Link href="/download" className="text-red-100/75 hover:text-white transition-colors">
                   تحميل
                 </Link>
               </li>
@@ -55,27 +55,27 @@ export default function Footer() {
             <h4 className="text-lg font-semibold mb-4">سياسات وقوانين</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/privacy" className="text-gray-400 hover:text-red-500 transition-colors">
+                <Link href="/privacy" className="text-red-100/75 hover:text-white transition-colors">
                   سياسة الخصوصية
                 </Link>
               </li>
               <li>
-                <Link href="/terms" className="text-gray-400 hover:text-red-500 transition-colors">
+                <Link href="/terms" className="text-red-100/75 hover:text-white transition-colors">
                   الشروط والأحكام
                 </Link>
               </li>
               <li>
-                <Link href="/agreements" className="text-gray-400 hover:text-red-500 transition-colors">
+                <Link href="/agreements" className="text-red-100/75 hover:text-white transition-colors">
                   الاتفاقيات والسياسات
                 </Link>
               </li>
               <li>
-                <Link href="/dmca" className="text-gray-400 hover:text-red-500 transition-colors">
+                <Link href="/dmca" className="text-red-100/75 hover:text-white transition-colors">
                   حقوق النشر (DMCA)
                 </Link>
               </li>
               <li>
-                <Link href="/security" className="text-gray-400 hover:text-red-500 transition-colors">
+                <Link href="/security" className="text-red-100/75 hover:text-white transition-colors">
                   أمان البيانات
                 </Link>
               </li>
@@ -86,22 +86,22 @@ export default function Footer() {
             <h4 className="text-lg font-semibold mb-4">مساعدة ودعم</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/contact" className="text-gray-400 hover:text-red-500 transition-colors">
+                <Link href="/contact" className="text-red-100/75 hover:text-white transition-colors">
                   اتصل بنا
                 </Link>
               </li>
               <li>
-                <Link href="/faq" className="text-gray-400 hover:text-red-500 transition-colors">
+                <Link href="/faq" className="text-red-100/75 hover:text-white transition-colors">
                   الأسئلة الشائعة
                 </Link>
               </li>
               <li>
-                <Link href="/complaints" className="text-gray-400 hover:text-red-500 transition-colors">
+                <Link href="/complaints" className="text-red-100/75 hover:text-white transition-colors">
                   شكاوى وبلاغات
                 </Link>
               </li>
               <li>
-                <Link href="/deletion" className="text-gray-400 hover:text-red-500 transition-colors">
+                <Link href="/deletion" className="text-red-100/75 hover:text-white transition-colors">
                   طلب حذف الحساب
                 </Link>
               </li>
@@ -112,13 +112,13 @@ export default function Footer() {
         {hasSocials && (
           <div className="mb-8">
             <h4 className="text-lg font-semibold mb-3">تابعنا</h4>
-            <div className="flex items-center gap-4 text-gray-400">
+            <div className="flex items-center gap-4 text-red-100/75">
               {socials.x && (
                 <a
                   href={socials.x}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-red-500 transition-colors"
+                  className="hover:text-white transition-colors"
                   aria-label="X"
                 >
                   <svg viewBox="0 0 24 24" className="h-6 w-6" fill="currentColor">
@@ -131,7 +131,7 @@ export default function Footer() {
                   href={socials.instagram}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-red-500 transition-colors"
+                  className="hover:text-white transition-colors"
                   aria-label="Instagram"
                 >
                   <svg viewBox="0 0 24 24" className="h-6 w-6" fill="currentColor">
@@ -144,7 +144,7 @@ export default function Footer() {
                   href={socials.youtube}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-red-500 transition-colors"
+                  className="hover:text-white transition-colors"
                   aria-label="YouTube"
                 >
                   <svg viewBox="0 0 24 24" className="h-6 w-6" fill="currentColor">
@@ -156,8 +156,8 @@ export default function Footer() {
           </div>
         )}
 
-        <div className="border-t border-gray-800 pt-8">
-          <p className="text-gray-400 text-center">&copy; {currentYear} دريدود. جميع الحقوق محفوظة.</p>
+        <div className="border-t border-red-300/20 pt-8">
+          <p className="text-red-100/75 text-center">&copy; {currentYear} دريدود. جميع الحقوق محفوظة.</p>
         </div>
       </div>
     </footer>

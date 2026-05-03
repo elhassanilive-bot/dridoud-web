@@ -12,8 +12,8 @@ export const metadata = buildPageMetadata({
 });
 
 export default function Terms() {
-  const title = doc.ar.title || "Ø§Ù„Ø´Ø±ÙˆØ· ÙˆØ§Ù„Ø£Ø­ÙƒØ§Ù…";
-  const updated = doc.ar.updated || doc.en.updated || "Ø¢Ø®Ø± ØªØ­Ø¯ÙŠØ« Ù‚Ø±ÙŠØ¨Ù‹Ø§";
+  const title = doc.ar.title || "الشروط والأحكام";
+  const updated = doc.ar.updated || doc.en.updated || "آخر تحديث قريبًا";
 
   return (
     <div className="w-full">
@@ -23,7 +23,7 @@ export default function Terms() {
           <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 dark:text-white mt-3">{title}</h1>
           <p className="text-lg text-gray-700 dark:text-gray-300 mt-4">{updated}</p>
           <p className="text-base text-gray-700 dark:text-gray-300 mt-3 max-w-3xl mx-auto">
-            Ù†Ø´Ø§Ø±ÙƒÙƒ Ø­Ø¯ÙˆØ¯ Ø§Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù… ÙˆØ³ÙŠØ§Ø³Ø© Ø§Ù„ØªØ¹Ø§Ù…Ù„ Ù…Ø¹ Ø§Ù„Ù…Ø­ØªÙˆÙ‰ØŒ Ù„Ø¶Ù…Ø§Ù† Ø¨ÙŠØ¦Ø© Ø¢Ù…Ù†Ø© ÙˆÙ…ØªÙˆØ§Ø²Ù†Ø© Ø¯Ø§Ø®Ù„ Ø§Ù„Ù…Ù†ØµØ©.
+            نشاركك حدود الاستخدام وسياسة التعامل مع المحتوى، لضمان بيئة آمنة ومتوازنة داخل المنصة.
           </p>
         </div>
       </section>

@@ -12,8 +12,8 @@ export const metadata = buildPageMetadata({
 });
 
 export default function Privacy() {
-  const title = doc.ar.title || "Ø³ÙŠØ§Ø³Ø© Ø§Ù„Ø®ØµÙˆØµÙŠØ©";
-  const updated = doc.ar.updated || doc.en.updated || "Ø¢Ø®Ø± ØªØ­Ø¯ÙŠØ« Ù‚Ø±ÙŠØ¨Ù‹Ø§";
+  const title = doc.ar.title || "سياسة الخصوصية";
+  const updated = doc.ar.updated || doc.en.updated || "آخر تحديث قريبًا";
 
   return (
     <div className="w-full">
@@ -23,7 +23,7 @@ export default function Privacy() {
           <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 dark:text-white mt-3">{title}</h1>
           <p className="text-lg text-gray-700 dark:text-gray-300 mt-4">{updated}</p>
           <p className="text-base text-gray-700 dark:text-gray-300 mt-3 max-w-3xl mx-auto">
-            Ù†Ø¶Ø¹ Ø§Ù„Ø´ÙØ§ÙÙŠØ© ÙÙŠ ØµÙ„Ø¨ ØªØ¹Ø§Ù…Ù„Ù†Ø§ Ù…Ø¹ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§ØªØŒ ÙˆØªÙˆØ¶Ø­ Ù‡Ø°Ù‡ Ø§Ù„ØµÙØ­Ø© ÙƒÙŠÙ ØªØªØ­ÙƒÙ… ÙÙŠ Ø§Ù„Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„Ø®Ø§ØµØ© Ø¨Ùƒ Ø¹Ù„Ù‰ Ø¯Ø±ÙŠØ¯ÙˆØ¯.
+            نضع الشفافية في صلب تعاملنا مع البيانات، وتوضح هذه الصفحة كيف تتحكم في المعلومات الخاصة بك على دريدود.
           </p>
         </div>
       </section>

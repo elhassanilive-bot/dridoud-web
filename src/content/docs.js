@@ -1,4 +1,4 @@
-import fs from "fs";
+﻿import fs from "fs";
 import path from "path";
 
 const docsDir = path.join(process.cwd(), "assets", "Docs");
@@ -36,3 +36,4 @@ export const docsContent = {
   agreements: readDoc("agreements"),
   dmca: readDoc("dmca"),
 };
+
