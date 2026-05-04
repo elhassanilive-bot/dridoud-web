@@ -131,7 +131,7 @@ export default function DownloadPage() {
 
   return (
     <div className="w-full">
-      <section className="w-full min-h-[70vh] bg-gradient-to-br from-red-600 to-rose-700 text-white py-20 sm:py-32">
+      <section className="w-full min-h-[70vh] bg-red-900 text-white py-20 sm:py-32">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div> 
             <p className="text-xs uppercase tracking-[0.6em] text-white/70">تحميل</p>
