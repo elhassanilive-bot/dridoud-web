@@ -236,8 +236,8 @@ export default function ContactForm() {
             <Icon name="mail" className="h-5 w-5 text-red-600" />
             <div>
               <p className="text-sm font-semibold">البريد الإلكتروني</p>
-              <a className="text-sm text-red-600 hover:underline" href="mailto:team@dridoud.com">
-                team@dridoud.com
+              <a className="text-sm text-red-600 hover:underline" href="mailto:support@dridoud.com">
+                support@dridoud.com
               </a>
             </div>
           </div>
@@ -255,3 +255,4 @@ export default function ContactForm() {
     </section>
   );
 }
+

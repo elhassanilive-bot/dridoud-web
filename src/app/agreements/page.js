@@ -348,8 +348,8 @@ export default function AgreementsPage() {
             <div className="space-y-3 text-gray-700 dark:text-gray-300">
               <div className="flex items-center gap-3">
                 <Icon name="mail" className="h-6 w-6 text-red-600" />
-                <a className="font-semibold text-red-600 hover:underline" href="mailto:team@dridoud.com">
-                  team@dridoud.com
+                <a className="font-semibold text-red-600 hover:underline" href="mailto:support@dridoud.com">
+                  support@dridoud.com
                 </a>
               </div>
               <div className="flex items-center gap-3">
@@ -365,4 +365,5 @@ export default function AgreementsPage() {
     </div>
   );
 }
+
 

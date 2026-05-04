@@ -111,7 +111,7 @@ export async function POST(request) {
     const currentTransporter = getTransporter();
     await currentTransporter.sendMail({
       from: process.env.EMAIL_FROM ?? 'Dridoud <no-reply@dridoud.com>',
-      to: process.env.CONTACT_RECIPIENT ?? 'team@dridoud.com',
+      to: process.env.CONTACT_RECIPIENT ?? 'support@dridoud.com',
       replyTo: payload.email,
       subject: `طلب حذف حساب - ${payload.username}`,
       text: buildMessage(payload),
@@ -124,3 +124,4 @@ export async function POST(request) {
     return NextResponse.json({ message: 'تعذر إرسال الطلب. ' + message }, { status: 500 });
   }
 }
+

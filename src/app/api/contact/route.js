@@ -105,7 +105,7 @@ export async function POST(request) {
     const currentTransporter = getTransporter();
     await currentTransporter.sendMail({
       from: process.env.EMAIL_FROM ?? 'Dridoud <no-reply@dridoud.com>',
-      to: process.env.CONTACT_RECIPIENT ?? 'team@dridoud.com',
+      to: process.env.CONTACT_RECIPIENT ?? 'support@dridoud.com',
       replyTo: payload.email,
       subject: `رسالة من ${payload.fullName}${payload.subject ? ` - ${payload.subject}` : ''}`,
       text: buildMessage(payload),
@@ -118,3 +118,4 @@ export async function POST(request) {
     return NextResponse.json({ message: 'تعذر إرسال الرسالة. ' + message }, { status: 500 });
   }
 }
+

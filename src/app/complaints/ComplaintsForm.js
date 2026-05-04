@@ -351,8 +351,8 @@ export default function ComplaintsForm() {
         <div className="space-y-3 text-sm">
           <p className="flex items-center gap-2">
             <Icon name="mail" className="h-5 w-5 text-red-600" />
-            <a href="mailto:team@dridoud.com" className="font-semibold text-red-600 hover:underline">
-              team@dridoud.com
+            <a href="mailto:support@dridoud.com" className="font-semibold text-red-600 hover:underline">
+              support@dridoud.com
             </a>
           </p>
           <p className="flex items-center gap-2">
@@ -365,3 +365,4 @@ export default function ComplaintsForm() {
     </div>
   );
 }
+
