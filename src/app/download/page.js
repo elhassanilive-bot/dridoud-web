@@ -2,40 +2,40 @@
 import { downloadContent } from "@/content/download";
 
 export const metadata = {
-  title: "ØªØ­Ù…ÙŠÙ„ Ø¯Ø±ÙŠØ¯ÙˆØ¯",
-  description: "Ø§Ù„ØµÙØ­Ø© Ø§Ù„Ø±Ø³Ù…ÙŠØ© Ù„ØªØ­Ù…ÙŠÙ„ ØªØ·Ø¨ÙŠÙ‚ Ø¯Ø±ÙŠØ¯ÙˆØ¯ Ø¹Ù„Ù‰ Android ÙˆiOS Ø¨Ø§Ù„Ø¥Ø¶Ø§ÙØ© Ø¥Ù„Ù‰ Ù†Ø³Ø®Ø© APK Ø§Ù„ØªØ¬Ø±ÙŠØ¨ÙŠØ©.",
+  title: "تحميل دريدود",
+  description: "الصفحة الرسمية لتحميل تطبيق دريدود على Android وiOS بالإضافة إلى نسخة APK المباشرة.",
   alternates: { canonical: "/download" },
 };
 
 const downloadButtons = [
   {
     id: "android",
-    label: "ØªØ­Ù…ÙŠÙ„ Ù…Ù† Google Play",
-    helper: "ÙŠØªØ·Ù„Ø¨ Android 9.0 ÙØ£Ø­Ø¯Ø«",
+    label: "تنزيل التطبيق من Google Play",
+    helper: "يتطلب Android 9.0 فأحدث",
     link: downloadContent.links.apk,
     logo: "/icon.png",
     theme: "apk",
-    alt: "Ø´Ø¹Ø§Ø± Android",
+    alt: "أيقونة APK",
   },
   {
     id: "ios",
-    label: "ØªØ­Ù…ÙŠÙ„ Ù…Ù† App Store",
-    helper: "Ù…ØªØ§Ø­ Ù„Ø£Ø¬Ù‡Ø²Ø© iOS 15 ÙØ£Ø­Ø¯Ø«",
+    label: "تحميل من App Store",
+    helper: "متاح لأجهزة iOS 15 فأحدث",
     link: downloadContent.links.apk,
     icon: (className) => (
       <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
         <path d="M16.7 12.4c0-2 1.6-3 1.7-3.1-.9-1.4-2.4-1.6-2.9-1.6-1.2-.1-2.4.7-3 .7-.6 0-1.6-.7-2.7-.7-1.4 0-2.6.8-3.4 2-.9 1.6-.2 4 .7 5.3.5.7 1 1.5 1.8 1.5s1.1-.5 2.1-.5c1 0 1.3.5 2.1.5.8 0 1.4-.8 1.8-1.5.6-.9.9-1.9.9-2 .1 0-1.7-.7-1.7-2.6Zm-2-6c.4-.5.7-1.2.6-1.9-.7 0-1.5.5-2 .9-.4.5-.8 1.1-.7 1.8.8.1 1.6-.4 2.1-.8Z" />
       </svg>
     ),
-    alt: "Ø´Ø¹Ø§Ø± Apple",
+    alt: "شعار Apple",
   },
   {
     id: "apk",
-    label: "ØªÙ†Ø²ÙŠÙ„ APK Ù…Ø¨Ø§Ø´Ø±Ø©",
-    helper: "Ù†Ø³Ø®Ø© Ù…Ø¨Ø¯Ø¦ÙŠØ© Ø¨Ø¯ÙˆÙ† Ù…ØªØ¬Ø±",
+    label: "تنزيل APK مباشرة",
+    helper: "نسخة مستقرة بدون متجر",
     link: downloadContent.links.apk,
     logo: "https://img.icons8.com/ios-filled/144/ffffff/apk.png",
-    alt: "Ù…Ù„Ù APK",
+    alt: "ملف APK",
   },
 ];
 
@@ -103,13 +103,15 @@ function DownloadButton({ button }) {
     </div>
   );
 }
+
 function AppVersionCard({ version }) {
   const available = Boolean(version.downloadLink);
+
   return (
     <article className="bg-gray-900 dark:bg-gray-800 text-white rounded-3xl p-6 shadow-2xl border border-white/5 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.4em] text-blue-200">Ø¥ØµØ¯Ø§Ø±</p>
+          <p className="text-xs uppercase tracking-[0.4em] text-blue-200">إصدار</p>
           <h3 className="text-2xl font-bold">{version.version}</h3>
         </div>
         <span className="text-xs uppercase tracking-[0.4em] text-green-300">{version.date}</span>
@@ -120,12 +122,10 @@ function AppVersionCard({ version }) {
         download={available ? true : undefined}
         aria-disabled={!available}
         className={`mt-3 w-full rounded-full px-4 py-2 font-semibold transition ${
-          available
-            ? "bg-white text-gray-900 hover:bg-gray-100"
-            : "bg-white/20 text-white cursor-not-allowed"
+          available ? "bg-white text-gray-900 hover:bg-gray-100" : "bg-white/20 text-white cursor-not-allowed"
         }`}
       >
-        {available ? "ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø¥ØµØ¯Ø§Ø±" : "ØªØ­Ø¯ÙŠØ« Ù‚Ø§Ø¯Ù…"}
+        {available ? "تحميل الإصدار" : "تحديث قادم"}
       </a>
     </article>
   );
@@ -138,16 +138,18 @@ export default function DownloadPage() {
     <div className="w-full">
       <section className="w-full min-h-[70vh] bg-red-900 text-white py-20 sm:py-32">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-          <div> 
-            <p className="text-xs uppercase tracking-[0.6em] text-white/70">ØªØ­Ù…ÙŠÙ„</p>
+          <div>
+            <p className="text-xs uppercase tracking-[0.6em] text-white/70">تحميل</p>
             <h1 className="text-5xl font-bold leading-tight">{downloadContent.hero.title}</h1>
             <p className="text-lg text-white/80 leading-relaxed">{downloadContent.hero.subtitle}</p>
           </div>
+
           <div className="flex flex-col sm:flex-row gap-4">
             {downloadButtons.map((button) => (
               <DownloadButton key={button.id} button={button} />
             ))}
           </div>
+
           <p className="text-sm text-white/70">اضغط على أي زر لبدء تنزيل ملف APK مباشرة.</p>
         </div>
       </section>
@@ -156,18 +158,19 @@ export default function DownloadPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <p className="text-sm uppercase tracking-[0.4em] text-red-600">Ø³Ø¬Ù„ Ø§Ù„Ø¥ØµØ¯Ø§Ø±Ø§Øª</p>
-              <h2 className="text-4xl font-bold text-gray-900 dark:text-white mt-2">Ø§Ù„Ø¥ØµØ¯Ø§Ø±Ø§Øª Ø§Ù„Ø³Ø§Ø¨Ù‚Ø©</h2>
+              <p className="text-sm uppercase tracking-[0.4em] text-red-600">سجل الإصدارات</p>
+              <h2 className="text-4xl font-bold text-gray-900 dark:text-white mt-2">الإصدارات السابقة</h2>
             </div>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              ÙƒÙ„ Ø¥ØµØ¯Ø§Ø± ÙŠÙØ¶Ø§Ù ÙŠØ¸Ù‡Ø± Ù…Ø¨Ø§Ø´Ø±Ø© Ø¯ÙˆÙ† Ø§Ù„Ø­Ø§Ø¬Ø© Ø¥Ù„Ù‰ Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„ØªØµÙ…ÙŠÙ….
+              كل إصدار يضاف يظهر مباشرة دون الحاجة إلى إعادة التصميم.
             </span>
           </div>
+
           {versions.length === 0 ? (
             <div className="rounded-3xl border border-dashed border-gray-300 dark:border-gray-700 p-10 text-center">
-              <p className="text-2xl font-semibold text-gray-900 dark:text-white">Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¥ØµØ¯Ø§Ø±Ø§Øª Ù…ØªØ§Ø­Ø© Ø­Ø§Ù„ÙŠØ§Ù‹</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">لا توجد إصدارات متاحة حالياً</p>
               <p className="text-gray-500 dark:text-gray-400 mt-3">
-                ÙŠØ¹Ù…Ù„ ÙØ±ÙŠÙ‚ Ø¯Ø±ÙŠØ¯ÙˆØ¯ Ø¹Ù„Ù‰ ØªØ¬Ù‡ÙŠØ² Ø£ÙˆÙ„ Ù†Ø³Ø®Ø©. Ø³ÙŠÙØ¹Ø±Ø¶ Ø³Ø¬Ù„ Ø§Ù„ØªØ­Ø¯ÙŠØ«Ø§Øª ÙÙˆØ± ØªÙˆÙØ±Ù‡.
+                يعمل فريق دريدود على تجهيز أول نسخة. سيعرض سجل التحديثات فور توفره.
               </p>
             </div>
           ) : (
@@ -183,9 +186,10 @@ export default function DownloadPage() {
       <section className="w-full py-20 sm:py-32 bg-gradient-to-br from-gray-50 to-white dark:from-black dark:to-gray-900">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
-            <p className="text-sm uppercase tracking-[0.4em] text-red-600">Ù„Ù…Ø§Ø°Ø§ ØªØ­Ù…ÙŠÙ„ Ø¯Ø±ÙŠØ¯ÙˆØ¯ØŸ</p>
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mt-3">Ù…ÙŠØ²Ø§Øª ØªØ¶Ø¹Ùƒ ÙÙŠ Ø§Ù„Ù‚Ù„Ø¨</h2>
+            <p className="text-sm uppercase tracking-[0.4em] text-red-600">لماذا تحميل دريدود؟</p>
+            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mt-3">ميزات تضعك في القلب</h2>
           </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {downloadContent.highlights.map((item) => (
               <div
@@ -203,9 +207,9 @@ export default function DownloadPage() {
 
       <section className="w-full py-20 sm:py-32 bg-gradient-to-br from-red-800 via-red-900 to-rose-950 text-white">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-          <h2 className="text-4xl font-bold">Ù…ØªØ§Ø­ Ø§Ù„Ø¢Ù† Ø¹Ù„Ù‰ ÙƒÙ„ Ø§Ù„Ø£Ø¬Ù‡Ø²Ø©</h2>
+          <h2 className="text-4xl font-bold">متاح الآن على كل الأجهزة</h2>
           <p className="text-lg text-red-100 leading-relaxed">
-            Ù†Ø¬Ù…Ø¹ Ø§Ù„ØªØ·Ø¨ÙŠÙ‚ Ù…Ø¹ Ø¯Ø¹Ù… Ø§Ù„Ø­Ù…Ø§ÙŠØ© ÙˆØ§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª ÙˆØ§Ù„ØªØ®ØµÙŠØµ Ø§Ù„ÙƒØ§Ù…Ù„. ÙƒÙ„ Ù…Ø§ Ø¹Ù„ÙŠÙƒ Ù‡Ùˆ Ø§Ø®ØªÙŠØ§Ø± Ø¬Ù‡Ø§Ø²Ùƒ ÙˆØ§Ù„Ø¨Ø¯Ø¡ ÙÙŠ Ø§Ù„ØªÙ†Ø²ÙŠÙ„.
+            نجمع التطبيق مع دعم الحماية والإشعارات والتخصيص الكامل. كل ما عليك هو اختيار جهازك والبدء في التنزيل.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <DownloadButton button={downloadButtons[0]} />
@@ -217,6 +221,3 @@ export default function DownloadPage() {
     </div>
   );
 }
-
-
-
