@@ -243,10 +243,11 @@ export default function Home() {
 
               <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link
-                  href="http://dridoud/download"
-                  className="inline-flex items-center justify-center bg-red-700 hover:bg-red-800 dark:bg-red-600 dark:hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
+                  href="/apk/dridoud-v1.2.1.apk"
+                  className="inline-flex items-center justify-center gap-3 bg-green-600 hover:bg-green-500 text-white px-8 py-3 rounded-lg font-semibold transition-colors shadow-lg shadow-green-900/30"
                 >
-                  {homeContent.hero.ctaPrimary}
+                  <Image src="/icon.png" alt="APK" width={20} height={20} className="h-5 w-5 rounded-sm" />
+                  <span>{homeContent.hero.ctaPrimary}</span>
                 </Link>
                 <Link
                   href="/features"
@@ -416,5 +417,6 @@ export default function Home() {
     </div>
   );
 }
+
 
 
