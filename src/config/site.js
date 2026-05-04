@@ -1,8 +1,8 @@
-export const site = {
+﻿export const site = {
   name: "دريدود",
   nameEn: "Dridoud",
   description:
-    "منصة تواصل اجتماعي عربية تجمع المنشورات، القصص، القنوات، والمجتمعات في تجربة واحدة آمنة وسريعة.",
+    "دريدود هو تطبيق تواصل اجتماعي من الجيل الجديد. يتميز بعدة مزايا مثل القنوات والمجموعات والقصص والفيديوهات واستطلاعات الرأي والعديد من المزايا التي تجعله مميزًا من بين تطبيقات التواصل الأخرى.",
   url: (process.env.NEXT_PUBLIC_SITE_URL || "https://www.dridoud.com").replace(/\/+$/, ""),
   supportEmail: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@dridoud.app",
   socials: {
