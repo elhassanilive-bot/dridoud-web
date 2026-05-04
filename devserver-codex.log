@@ -17,3 +17,9 @@ Creating turbopack project { dir: 'C:\\Project-Web\\DridoudWeb', testMode: true 
  GET /download 200 in 11.8s (compile: 8.7s, render: 3.1s)
  GET /privacy 200 in 11.9s (compile: 9.7s, render: 2.2s)
 ✓ Compiled in 580ms
+✓ Compiled in 338ms
+✓ Compiled in 241ms
+✓ Compiled in 216ms
+✓ Compiled in 292ms
+✓ Compiled in 119ms
+✓ Compiled in 383ms

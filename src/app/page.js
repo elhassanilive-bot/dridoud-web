@@ -159,9 +159,9 @@ const comparisonRows = [
 ];
 const downloadOptions = [
   {
-    label: "Download on Google Play",
+    label: "Google Play",
     platform: "Android",
-    href: "/download",
+    href: null,
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v14m-4-6 4 4 4-4" />
@@ -169,11 +169,12 @@ const downloadOptions = [
       </svg>
     ),
     variant: "primary",
+    available: false,
   },
   {
-    label: "Download on iOS",
+    label: "iOS",
     platform: "iOS",
-    href: "/download",
+    href: null,
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4a4 4 0 0 1 4 4v8a4 4 0 1 1-8 0V8a4 4 0 0 1 4-4z" />
@@ -181,11 +182,12 @@ const downloadOptions = [
       </svg>
     ),
     variant: "secondary",
+    available: false,
   },
   {
-    label: "Download APK",
+    label: "تنزيل تطبيق دريدود بصيغة Apk",
     platform: "APK",
-    href: "/download/apk",
+    href: "/apk/dridoud-v1.2.1.apk",
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
         <path strokeLinecap="round" strokeLinejoin="round" d="M5 7h14v10H5z" />
@@ -193,6 +195,7 @@ const downloadOptions = [
       </svg>
     ),
     variant: "tertiary",
+    available: true,
   },
 ];
 
@@ -247,7 +250,7 @@ export default function Home() {
                   className="inline-flex items-center justify-center gap-3 bg-green-600 hover:bg-green-500 text-white px-8 py-3 rounded-lg font-semibold transition-colors shadow-lg shadow-green-900/30"
                 >
                   <Image src="/icon.png" alt="APK" width={20} height={20} className="h-5 w-5 rounded-sm" />
-                  <span>{homeContent.hero.ctaPrimary}</span>
+                  <span>تنزيل تطبيق دريدود بصيغة Apk</span>
                 </Link>
                 <Link
                   href="/features"
@@ -399,15 +402,29 @@ export default function Home() {
                   variantClass =
                     "border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-900 shadow-sm";
                 }
+                if (!option.available) {
+                  variantClass =
+                    "border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed opacity-80";
+                }
 
                 return (
-                <Link
-                  key={option.platform}
-                  href={option.href}
-                  className={`w-full sm:w-auto inline-flex items-center justify-center gap-3 px-6 py-3 rounded-full font-semibold shadow-lg transition-colors ${variantClass}`}
-                >
-                  <span className="text-base">{option.label}</span>
-                </Link>
+                option.available ? (
+                  <Link
+                    key={option.platform}
+                    href={option.href}
+                    className={`w-full sm:w-auto inline-flex items-center justify-center gap-3 px-6 py-3 rounded-full font-semibold shadow-lg transition-colors ${variantClass}`}
+                  >
+                    <span className="text-base">{option.label}</span>
+                  </Link>
+                ) : (
+                  <span
+                    key={option.platform}
+                    aria-disabled="true"
+                    className={`w-full sm:w-auto inline-flex items-center justify-center gap-3 px-6 py-3 rounded-full font-semibold shadow-lg ${variantClass}`}
+                  >
+                    <span className="text-base">{option.label} - قريبًا</span>
+                  </span>
+                )
                 );
               })}
             </div>
