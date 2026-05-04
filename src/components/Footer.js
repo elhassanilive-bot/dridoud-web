@@ -28,83 +28,83 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="text-lg font-semibold mb-4">Ø±ÙˆØ§Ø¨Ø· Ø³Ø±ÙŠØ¹Ø©</h4>
+            <h4 className="text-lg font-semibold mb-4">روابط سريعة</h4>
             <ul className="space-y-2">
               <li>
                 <Link href="/" className="text-red-100/75 hover:text-white transition-colors">
-                  Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©
+                  الرئيسية
                 </Link>
               </li>
               <li>
                 <Link href="/features" className="text-red-100/75 hover:text-white transition-colors">
-                  Ø§Ù„Ù…ÙŠØ²Ø§Øª
+                  الميزات
                 </Link>
               </li>
               <li>
                 <Link href="/about" className="text-red-100/75 hover:text-white transition-colors">
-                  Ù…Ù† Ù†Ø­Ù†
+                  من نحن
                 </Link>
               </li>
               <li>
                 <Link href="/download" className="text-red-100/75 hover:text-white transition-colors">
-                  ØªØ­Ù…ÙŠÙ„
+                  تحميل
                 </Link>
               </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-lg font-semibold mb-4">Ø³ÙŠØ§Ø³Ø§Øª ÙˆÙ‚ÙˆØ§Ù†ÙŠÙ†</h4>
+            <h4 className="text-lg font-semibold mb-4">سياسات وقوانين</h4>
             <ul className="space-y-2">
               <li>
                 <Link href="/privacy" className="text-red-100/75 hover:text-white transition-colors">
-                  Ø³ÙŠØ§Ø³Ø© Ø§Ù„Ø®ØµÙˆØµÙŠØ©
+                  سياسة الخصوصية
                 </Link>
               </li>
               <li>
                 <Link href="/terms" className="text-red-100/75 hover:text-white transition-colors">
-                  Ø§Ù„Ø´Ø±ÙˆØ· ÙˆØ§Ù„Ø£Ø­ÙƒØ§Ù…
+                  الشروط والأحكام
                 </Link>
               </li>
               <li>
                 <Link href="/agreements" className="text-red-100/75 hover:text-white transition-colors">
-                  Ø§Ù„Ø§ØªÙØ§Ù‚ÙŠØ§Øª ÙˆØ§Ù„Ø³ÙŠØ§Ø³Ø§Øª
+                  الاتفاقيات والسياسات
                 </Link>
               </li>
               <li>
                 <Link href="/dmca" className="text-red-100/75 hover:text-white transition-colors">
-                  Ø­Ù‚ÙˆÙ‚ Ø§Ù„Ù†Ø´Ø± (DMCA)
+                  حقوق النشر (DMCA)
                 </Link>
               </li>
               <li>
                 <Link href="/security" className="text-red-100/75 hover:text-white transition-colors">
-                  Ø£Ù…Ø§Ù† Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª
+                  أمان البيانات
                 </Link>
               </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-lg font-semibold mb-4">Ù…Ø³Ø§Ø¹Ø¯Ø© ÙˆØ¯Ø¹Ù…</h4>
+            <h4 className="text-lg font-semibold mb-4">مساعدة ودعم</h4>
             <ul className="space-y-2">
               <li>
                 <Link href="/contact" className="text-red-100/75 hover:text-white transition-colors">
-                  Ø§ØªØµÙ„ Ø¨Ù†Ø§
+                  اتصل بنا
                 </Link>
               </li>
               <li>
                 <Link href="/faq" className="text-red-100/75 hover:text-white transition-colors">
-                  Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ø´Ø§Ø¦Ø¹Ø©
+                  الأسئلة الشائعة
                 </Link>
               </li>
               <li>
                 <Link href="/complaints" className="text-red-100/75 hover:text-white transition-colors">
-                  Ø´ÙƒØ§ÙˆÙ‰ ÙˆØ¨Ù„Ø§ØºØ§Øª
+                  شكاوى وبلاغات
                 </Link>
               </li>
               <li>
                 <Link href="/deletion" className="text-red-100/75 hover:text-white transition-colors">
-                  Ø·Ù„Ø¨ Ø­Ø°Ù Ø§Ù„Ø­Ø³Ø§Ø¨
+                  طلب حذف الحساب
                 </Link>
               </li>
             </ul>
@@ -113,7 +113,7 @@ export default function Footer() {
 
         {hasSocials && (
           <div className="mb-8">
-            <h4 className="text-lg font-semibold mb-3">ØªØ§Ø¨Ø¹Ù†Ø§</h4>
+            <h4 className="text-lg font-semibold mb-3">تابعنا</h4>
             <div className="flex items-center gap-4 text-red-100/75">
               {socials.x && (
                 <a
@@ -159,10 +159,9 @@ export default function Footer() {
         )}
 
         <div className="border-t border-red-300/20 pt-8">
-          <p className="text-red-100/75 text-center">&copy; {currentYear} Ø¯Ø±ÙŠØ¯ÙˆØ¯. Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø­Ù‚ÙˆÙ‚ Ù…Ø­ÙÙˆØ¸Ø©.</p>
+          <p className="text-red-100/75 text-center">&copy; {currentYear} دريدود. جميع الحقوق محفوظة.</p>
         </div>
       </div>
     </footer>
   );
 }
-
