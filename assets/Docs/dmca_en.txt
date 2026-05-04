@@ -1,4 +1,4 @@
-DMCA Policy
+﻿DMCA Policy
 
 If you believe content on Dridoud infringes your copyright, you may submit a DMCA notice with:
 - Your contact information.
@@ -8,7 +8,7 @@ If you believe content on Dridoud infringes your copyright, you may submit a DMC
 - A statement under penalty of perjury that the notice is accurate and you are authorized.
 - Your signature (physical or electronic).
 
-Send notices to: support@dridoud.app
+Send notices to: support@dridoud.com
 
 Counter-notice
 If your content was removed by mistake, you may submit a lawful counter-notice including:
