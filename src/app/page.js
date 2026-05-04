@@ -228,11 +228,8 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="text-center lg:text-right">
-              <div className="inline-flex items-center gap-3 bg-white/70 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800 px-4 py-2 rounded-full text-gray-700 dark:text-gray-300">
-                <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-red-700 text-white font-bold">
-                  D
-                </span>
-                <span className="font-semibold">{homeContent.hero.badgeName}</span>
+              <div className="inline-flex items-center bg-white/70 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800 px-5 py-2 rounded-full text-gray-700 dark:text-gray-300">
+                <span className="font-semibold">دريدود Dridoud</span>
               </div>
 
               <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 dark:text-white mt-6 mb-6 leading-tight">

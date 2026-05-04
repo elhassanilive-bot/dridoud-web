@@ -12,22 +12,23 @@ const downloadButtons = [
     id: "android",
     label: "تنزيل التطبيق من Google Play",
     helper: "يتطلب Android 9.0 فأحدث",
-    link: downloadContent.links.apk,
+    link: "",
     logo: "/icon.png",
-    theme: "apk",
+    theme: "soon",
     alt: "أيقونة APK",
   },
   {
     id: "ios",
     label: "تحميل من App Store",
     helper: "متاح لأجهزة iOS 15 فأحدث",
-    link: downloadContent.links.apk,
+    link: "",
     icon: (className) => (
       <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
         <path d="M16.7 12.4c0-2 1.6-3 1.7-3.1-.9-1.4-2.4-1.6-2.9-1.6-1.2-.1-2.4.7-3 .7-.6 0-1.6-.7-2.7-.7-1.4 0-2.6.8-3.4 2-.9 1.6-.2 4 .7 5.3.5.7 1 1.5 1.8 1.5s1.1-.5 2.1-.5c1 0 1.3.5 2.1.5.8 0 1.4-.8 1.8-1.5.6-.9.9-1.9.9-2 .1 0-1.7-.7-1.7-2.6Zm-2-6c.4-.5.7-1.2.6-1.9-.7 0-1.5.5-2 .9-.4.5-.8 1.1-.7 1.8.8.1 1.6-.4 2.1-.8Z" />
       </svg>
     ),
     alt: "شعار Apple",
+    theme: "soon",
   },
   {
     id: "apk",
@@ -36,6 +37,7 @@ const downloadButtons = [
     link: downloadContent.links.apk,
     logo: "https://img.icons8.com/ios-filled/144/ffffff/apk.png",
     alt: "ملف APK",
+    theme: "apk",
   },
 ];
 
@@ -99,6 +101,7 @@ function DownloadButton({ button }) {
           <span className="text-lg text-left">{button.label}</span>
         </span>
         {button.helper && <p className="text-xs text-white/70">{button.helper}</p>}
+        {!ready && <p className="text-xs text-white/70">قريبًا</p>}
       </a>
     </div>
   );
@@ -150,7 +153,7 @@ export default function DownloadPage() {
             ))}
           </div>
 
-          <p className="text-sm text-white/70">اضغط على أي زر لبدء تنزيل ملف APK مباشرة.</p>
+          <p className="text-sm text-white/70">تنزيل APK متاح الآن، وGoogle Play وApp Store قريبًا.</p>
         </div>
       </section>
 
