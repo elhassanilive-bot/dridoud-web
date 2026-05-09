@@ -6,15 +6,21 @@
     image: "/screenshots/dridoud-home.jpg",
   },
   links: {
-    android: "/apk/dridoud-v1.2.1.apk",
-    ios: "/apk/dridoud-v1.2.1.apk",
-    apk: "/apk/dridoud-v1.2.1.apk",
+    android: "/apk/dridoud-v2.0.0.apk",
+    ios: "/apk/dridoud-v2.0.0.apk",
+    apk: "/apk/dridoud-v2.0.0.apk",
   },
   versions: [
     {
+      version: "2.0.0",
+      date: "2026-05-09",
+      description: "الإصدار الأحدث من تطبيق دريدود مع تحسينات الأداء وتصحيح الأخطاء.",
+      downloadLink: "/apk/dridoud-v2.0.0.apk",
+    },
+    {
       version: "1.2.1",
       date: "2026-05-04",
-      description: "الإصدار الرسمي الحالي لتطبيق دريدود (APK).",
+      description: "الإصدار القديم لتطبيق دريدود. متوفر للرجوع في حالة الحاجة.",
       downloadLink: "/apk/dridoud-v1.2.1.apk",
     },
   ],

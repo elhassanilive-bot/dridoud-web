@@ -187,7 +187,7 @@ const downloadOptions = [
   {
     label: "تنزيل تطبيق دريدود بصيغة Apk",
     platform: "APK",
-    href: "/apk/dridoud-v1.2.1.apk",
+    href: "/apk/dridoud-v2.0.0.apk",
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
         <path strokeLinecap="round" strokeLinejoin="round" d="M5 7h14v10H5z" />
