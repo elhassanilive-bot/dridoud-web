@@ -23,11 +23,11 @@ export const metadata = {
   category: "social networking",
   icons: {
     icon: [
-      { url: "/favicon.ico?v=3", type: "image/png" },
-      { url: "/icon.png?v=3", type: "image/png" },
+      { url: "/favicon.ico?v=4", type: "image/png" },
+      { url: "/icon.png?v=4", type: "image/png" },
     ],
-    shortcut: "/favicon.ico?v=3",
-    apple: "/apple-icon.png?v=3",
+    shortcut: "/favicon.ico?v=4",
+    apple: "/apple-icon.png?v=4",
   },
   title: {
     default: `${site.name} | ${site.nameEn}`,
