@@ -1,4 +1,4 @@
-import "./globals.css";
+﻿import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { site } from "@/config/site";
@@ -31,7 +31,7 @@ export const metadata = {
   },
   title: {
     default: `${site.name} | ${site.nameEn}`,
-    template: `%s | ${site.name}`,
+    template: `%s | ${site.nameEn}`,
   },
   description: site.description,
   alternates: {

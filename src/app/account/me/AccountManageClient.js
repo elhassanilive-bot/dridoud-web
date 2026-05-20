@@ -239,7 +239,7 @@ export default function AccountManageClient() {
   if (loading) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-10">
-        <div className="rounded-3xl border border-emerald-200/70 bg-white p-8 text-center text-[#1f4735] shadow-sm">
+        <div className="rounded-3xl border border-red-200/70 bg-white p-8 text-center text-[#7f1d1d] shadow-sm">
           جاري تحميل بيانات الحساب...
         </div>
       </div>
@@ -249,31 +249,31 @@ export default function AccountManageClient() {
   return (
     <div className="relative mx-auto max-w-6xl px-4 py-10">
       <div className="pointer-events-none absolute inset-0 -z-10 opacity-60">
-        <div className="absolute -left-16 top-2 h-56 w-56 rounded-full bg-emerald-200/50 blur-3xl" />
-        <div className="absolute -right-10 bottom-2 h-72 w-72 rounded-full bg-emerald-100/65 blur-3xl" />
+        <div className="absolute -left-16 top-2 h-56 w-56 rounded-full bg-red-200/50 blur-3xl" />
+        <div className="absolute -right-10 bottom-2 h-72 w-72 rounded-full bg-red-100/65 blur-3xl" />
       </div>
 
-      <header className="mb-7 rounded-[2rem] border border-emerald-200/70 bg-white/95 p-6 shadow-[0_18px_45px_rgba(7,58,34,0.12)]">
-        <p className="text-xs font-bold uppercase tracking-[0.42em] text-emerald-600">DRIDOUD ACCOUNT</p>
-        <h1 className="mt-2 text-4xl font-black text-[#072b19]">الحساب</h1>
-        <p className="mt-2 text-[#214737]">إدارة الملف الشخصي وأمان الحساب بنفس هوية دريدود.</p>
+      <header className="mb-7 rounded-[2rem] border border-red-200/70 bg-white/95 p-6 shadow-[0_18px_45px_rgba(127,29,29,0.14)]">
+        <p className="text-xs font-bold uppercase tracking-[0.42em] text-red-600">DRIDOUD ACCOUNT</p>
+        <h1 className="mt-2 text-4xl font-black text-[#7f1d1d]">الحساب</h1>
+        <p className="mt-2 text-[#991b1b]">إدارة الملف الشخصي وأمان الحساب بنفس هوية دريدود.</p>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-[2rem] border border-emerald-200/70 bg-white/95 p-6 shadow-[0_14px_36px_rgba(7,58,34,0.1)]">
-          <h2 className="text-3xl font-black text-[#0f3a26]">الملف الشخصي</h2>
-          <p className="mt-2 text-[#2d5644]">تعديل بياناتك الشخصية وصورتك بنفس بيانات التطبيق.</p>
+        <section className="rounded-[2rem] border border-red-200/70 bg-white/95 p-6 shadow-[0_14px_36px_rgba(127,29,29,0.12)]">
+          <h2 className="text-3xl font-black text-[#7f1d1d]">الملف الشخصي</h2>
+          <p className="mt-2 text-[#b91c1c]">تعديل بياناتك الشخصية وصورتك بنفس بيانات التطبيق.</p>
 
           <div className="mt-5 flex items-center justify-end gap-3">
             <Link
               href={profile.username?.trim() ? `/${profile.username.trim()}` : '/'}
-              className="rounded-full border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100"
+              className="rounded-full border border-red-300 bg-red-50 px-4 py-2 text-sm font-bold text-red-700 transition hover:bg-red-100"
             >
               فتح صفحتي
             </Link>
             <button
               type="button"
-              className="rounded-full border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700"
+              className="rounded-full border border-red-300 bg-red-50 px-4 py-2 text-sm font-bold text-red-700"
             >
               المحفوظات
             </button>
@@ -284,7 +284,7 @@ export default function AccountManageClient() {
               <input
                 value={profile.full_name}
                 onChange={(e) => updateProfileField('full_name', e.target.value)}
-                className="w-full rounded-2xl border border-[#d3e7da] bg-[#f9fdfb] px-4 py-3 text-right font-semibold text-[#10291d] outline-none transition focus:border-emerald-500 focus:bg-white"
+                className="w-full rounded-2xl border border-[#fecaca] bg-[#fff1f2] px-4 py-3 text-right font-semibold text-[#3f0a0a] outline-none transition focus:border-red-500 focus:bg-white"
               />
             </Field>
 
@@ -292,7 +292,7 @@ export default function AccountManageClient() {
               <input
                 value={profile.username}
                 onChange={(e) => updateProfileField('username', e.target.value)}
-                className="w-full rounded-2xl border border-[#d3e7da] bg-[#f9fdfb] px-4 py-3 text-right font-semibold text-[#10291d] outline-none transition focus:border-emerald-500 focus:bg-white"
+                className="w-full rounded-2xl border border-[#fecaca] bg-[#fff1f2] px-4 py-3 text-right font-semibold text-[#3f0a0a] outline-none transition focus:border-red-500 focus:bg-white"
               />
             </Field>
 
@@ -300,26 +300,26 @@ export default function AccountManageClient() {
               <input
                 value={emailForm}
                 onChange={(e) => setEmailForm(e.target.value)}
-                className="w-full rounded-2xl border border-[#d3e7da] bg-[#f9fdfb] px-4 py-3 text-right font-semibold text-[#10291d] outline-none transition focus:border-emerald-500 focus:bg-white"
+                className="w-full rounded-2xl border border-[#fecaca] bg-[#fff1f2] px-4 py-3 text-right font-semibold text-[#3f0a0a] outline-none transition focus:border-red-500 focus:bg-white"
               />
             </Field>
 
-            <div className="rounded-2xl border border-emerald-100 bg-[#f6fcf8] p-4">
-              <p className="text-right text-lg font-black text-[#0f3a26]">الصورة الشخصية</p>
-              <p className="mt-1 text-right text-xs text-[#2d5644]">اختر صورة من جهازك (JPG/PNG/WEBP) أقل من 2MB.</p>
+            <div className="rounded-2xl border border-red-100 bg-[#fff5f5] p-4">
+              <p className="text-right text-lg font-black text-[#7f1d1d]">الصورة الشخصية</p>
+              <p className="mt-1 text-right text-xs text-[#b91c1c]">اختر صورة من جهازك (JPG/PNG/WEBP) أقل من 2MB.</p>
 
               <div className="mt-3 flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={pickAvatar}
-                  className="rounded-full border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100"
+                  className="rounded-full border border-red-300 bg-red-50 px-4 py-2 text-sm font-bold text-red-700 transition hover:bg-red-100"
                 >
                   رفع صورة
                 </button>
                 <button
                   type="button"
                   onClick={removeAvatar}
-                  className="rounded-full border border-[#c8ddcf] bg-white px-4 py-2 text-sm font-bold text-[#325643] transition hover:bg-[#f2faf5]"
+                  className="rounded-full border border-[#c8ddcf] bg-white px-4 py-2 text-sm font-bold text-[#7f1d1d] transition hover:bg-[#fff1f2]"
                 >
                   إزالة الصورة
                 </button>
@@ -334,8 +334,8 @@ export default function AccountManageClient() {
               />
             </div>
 
-            <div className="rounded-2xl border border-emerald-100 bg-[#f6fcf8] p-3">
-              <p className="mb-2 text-right text-sm text-[#2d5644]">معاينة الصورة الشخصية</p>
+            <div className="rounded-2xl border border-red-100 bg-[#fff5f5] p-3">
+              <p className="mb-2 text-right text-sm text-[#b91c1c]">معاينة الصورة الشخصية</p>
               <div className="flex justify-end">
                 {avatarPreview ? (
                   <Image
@@ -344,10 +344,10 @@ export default function AccountManageClient() {
                     width={64}
                     height={64}
                     unoptimized
-                    className="h-16 w-16 rounded-full border border-emerald-200 object-cover"
+                    className="h-16 w-16 rounded-full border border-red-200 object-cover"
                   />
                 ) : (
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full border border-emerald-200 bg-white text-xs text-[#5a7a6b]">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full border border-red-200 bg-white text-xs text-[#7f1d1d]">
                     بدون صورة
                   </div>
                 )}
@@ -358,23 +358,23 @@ export default function AccountManageClient() {
               type="button"
               onClick={saveProfile}
               disabled={busy}
-              className="w-full rounded-2xl bg-emerald-700 px-5 py-3 text-lg font-black text-white transition hover:bg-emerald-800 disabled:opacity-70"
+              className="w-full rounded-2xl bg-red-700 px-5 py-3 text-lg font-black text-white transition hover:bg-red-800 disabled:opacity-70"
             >
               حفظ الملف الشخصي
             </button>
           </div>
         </section>
 
-        <section className="rounded-[2rem] border border-emerald-200/70 bg-white/95 p-6 shadow-[0_14px_36px_rgba(7,58,34,0.1)]">
-          <h2 className="text-3xl font-black text-[#0f3a26]">الأمان</h2>
-          <p className="mt-2 text-[#2d5644]">تحديث البريد الإلكتروني وكلمة المرور ثم تسجيل الخروج.</p>
+        <section className="rounded-[2rem] border border-red-200/70 bg-white/95 p-6 shadow-[0_14px_36px_rgba(127,29,29,0.12)]">
+          <h2 className="text-3xl font-black text-[#7f1d1d]">الأمان</h2>
+          <p className="mt-2 text-[#b91c1c]">تحديث البريد الإلكتروني وكلمة المرور ثم تسجيل الخروج.</p>
 
           <div className="mt-6 space-y-4">
             <button
               type="button"
               onClick={updateEmail}
               disabled={busy}
-              className="w-full rounded-2xl border border-emerald-300 bg-emerald-50 px-5 py-3 text-base font-black text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-70"
+              className="w-full rounded-2xl border border-red-300 bg-red-50 px-5 py-3 text-base font-black text-red-700 transition hover:bg-red-100 disabled:opacity-70"
             >
               تحديث البريد الإلكتروني
             </button>
@@ -384,7 +384,7 @@ export default function AccountManageClient() {
                 type="password"
                 value={passwordForm.password}
                 onChange={(e) => setPasswordForm((prev) => ({ ...prev, password: e.target.value }))}
-                className="w-full rounded-2xl border border-[#d3e7da] bg-[#f9fdfb] px-4 py-3 text-right font-semibold text-[#10291d] outline-none transition focus:border-emerald-500 focus:bg-white"
+                className="w-full rounded-2xl border border-[#fecaca] bg-[#fff1f2] px-4 py-3 text-right font-semibold text-[#3f0a0a] outline-none transition focus:border-red-500 focus:bg-white"
               />
             </Field>
 
@@ -393,7 +393,7 @@ export default function AccountManageClient() {
                 type="password"
                 value={passwordForm.confirm}
                 onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirm: e.target.value }))}
-                className="w-full rounded-2xl border border-[#d3e7da] bg-[#f9fdfb] px-4 py-3 text-right font-semibold text-[#10291d] outline-none transition focus:border-emerald-500 focus:bg-white"
+                className="w-full rounded-2xl border border-[#fecaca] bg-[#fff1f2] px-4 py-3 text-right font-semibold text-[#3f0a0a] outline-none transition focus:border-red-500 focus:bg-white"
               />
             </Field>
 
@@ -401,7 +401,7 @@ export default function AccountManageClient() {
               type="button"
               onClick={updatePassword}
               disabled={busy}
-              className="w-full rounded-2xl bg-emerald-700 px-5 py-3 text-lg font-black text-white transition hover:bg-emerald-800 disabled:opacity-70"
+              className="w-full rounded-2xl bg-red-700 px-5 py-3 text-lg font-black text-white transition hover:bg-red-800 disabled:opacity-70"
             >
               تحديث كلمة المرور
             </button>
@@ -410,7 +410,7 @@ export default function AccountManageClient() {
               type="button"
               onClick={signOut}
               disabled={busy}
-              className="w-full rounded-2xl border border-emerald-300 bg-emerald-50 px-5 py-3 text-base font-black text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-70"
+              className="w-full rounded-2xl border border-red-300 bg-red-50 px-5 py-3 text-base font-black text-red-700 transition hover:bg-red-100 disabled:opacity-70"
             >
               تسجيل الخروج
             </button>
@@ -420,7 +420,7 @@ export default function AccountManageClient() {
 
       {(notice || error) && (
         <div className="mt-6 space-y-2">
-          {notice && <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{notice}</p>}
+          {notice && <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{notice}</p>}
           {error && <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
         </div>
       )}
@@ -431,7 +431,7 @@ export default function AccountManageClient() {
 function Field({ label, children }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-right text-sm font-black text-[#1b3a2c]">{label}</span>
+      <span className="mb-1.5 block text-right text-sm font-black text-[#7f1d1d]">{label}</span>
       {children}
     </label>
   );
@@ -454,3 +454,4 @@ function normalizeError(err) {
   if (text.includes('network') || text.includes('fetch')) return 'تعذر الاتصال بالخادم. تحقق من الإنترنت.';
   return 'حدث خطأ غير متوقع. حاول مرة أخرى.';
 }
+

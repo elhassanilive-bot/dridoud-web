@@ -21,142 +21,49 @@ import heroBanner from "../../assets/baner.jpg";
 import { homeContent } from "@/content/home";
 
 const galleryScreenshots = homeContent.galleryScreenshots;
-const comparisonPlatforms = [
-  { key: "dridoud", label: "دريدود", color: "text-red-600 dark:text-red-400" },
-  { key: "facebook", label: "Facebook", color: "text-blue-600" },
-  { key: "instagram", label: "Instagram", color: "text-pink-500" },
-  { key: "twitter", label: "Twitter (X)", color: "text-sky-500" },
-  { key: "threads", label: "Threads", color: "text-fuchsia-600" },
-  { key: "tiktok", label: "TikTok", color: "text-teal-500" },
-];
 const comparisonRows = [
   {
     feature: "تجربة الصفحة الرئيسية",
-    dridoud: "منشورات + صور + فيديو + صوت في مكان واحد",
-    facebook: "منشورات ونصوص مع بعض الصور والروابط",
-    instagram: "صور وفيديو قصير فقط مع وصف بسيط",
-    twitter: "تغريدات قصيرة وروابط",
-    threads: "نقاشات نصية محدودة",
-    tiktok: "فيديوهات قصيرة فقط",
+    dridoud: "استطلاعات الرأي التصويت + نشر منشور على شكل مقال بعناوين وفقرات + صور + فيديو + بث مباشر + ملصقات Gift + الاشارة لأشخاص في منشور + منشورات نصية ومنشورات بخلفيات ملونة ",
+    others: "         تجربة تعتمد على الخوارزميات والدكاء الاصطناعي في النشر والتنظيم واقتراح المنشورات في الصفحة الرئيسية كما أن الأولوية دائما للبارزين فقط.",
   },
   {
     feature: "تنوع المحتوى",
-    dridoud: "صور، فيديوهات، GIF، صوتيات، استطلاعات، بث مباشر",
-    facebook: "صور، روابط، فيديوهات قصيرة وطويلة",
-    instagram: "صور وفيديوهات قصيرة",
-    twitter: "نصوص وروابط وصور بسيطة",
-    threads: "نصوص وروابط قصيرة",
-    tiktok: "فيديوهات قصيرة فقط",
+    dridoud: " تنوع المحتوى بكل المجالات والفئات بشرط أن يكون قانوني ولا يخالف شروط المجتمع ",
+    others: "أنواع عديدة من المحتوى والتصفية للخوارزميات والدكاء الاصطناعي        .",
   },
   {
     feature: "نظام الفيديو",
-    dridoud: "فيديوهات قصيرة وطويلة مع بث حي وعرض متسلسل",
-    facebook: "بث مباشر ومشاهدات فيديو",
-    instagram: "Reels وفيديوهات قصيرة",
-    twitter: " فيديو بسيط تقريباً",
-    threads: "لا يدعم الفيديو المعقد",
-    tiktok: "فيديوهات قصيرة فقط",
+    dridoud: "فيديوهات قصيرة وطويلة مع بث حي وعرض متسلسل.",
+    others: "دعم متفاوت للفيديو؛ بعض المنصات تركز على القصير .",
   },
   {
-    feature: "المجتمعات والمجموعات",
-    dridoud: "مجموعات، مجتمعات، قنوات في مكان واحد",
-    facebook: "مجموعات فقط",
-    instagram: "مجتمعات ضعيفة",
-    twitter: "قنوات رسمية فقط",
-    threads: "غير مخصص للمجتمعات",
-    tiktok: "لا يوجد نظام مجتمعات متكامل",
-  },
-  {
-    feature: "القنوات لصناع المحتوى",
-    dridoud: "قنوات مخصصة للعلامات التجارية والمبدعين",
-    facebook: "صفحات فقط",
-    instagram: "حسابات تجارية عامة",
-    twitter: "تحقق بسيط",
-    threads: "لا توجد قنوات رسمية",
-    tiktok: "قناة + حساب واحد فقط",
-  },
-  {
-    feature: "نظام الاستكشاف",
-    dridoud: "اقتراحات + منشورات المتابعين في نفس المكان",
-    facebook: "خوارزميات منفصلة",
-    instagram: "صفحة Explore فقط",
-    twitter: "قائمة متداخلة",
-    threads: "تعتمد على الحسابات المدعوة",
-    tiktok: "فيديوهات مقترحة فقط",
+    feature: "المجتمعات والقنوات",
+    dridoud: "مجموعات، وقنوات في مكان واحد.",
+    others: "الميزات موزعة أو محدودة حسب كل منصة.",
   },
   {
     feature: "الدردشة",
-    dridoud: "دردشة مدمجة داخل المنصة",
-    facebook: "تطبيق Messenger منفصل",
-    instagram: "رسائل داخل التطبيق ولكن محدودة",
-    twitter: "رسائل خاصة فقط",
-    threads: "غير مدمج بالكامل",
-    tiktok: "رسائل محدودة وعشوائية",
+    dridoud: "دردشة مدمجة داخل المنصة.",
+    others: "أحياناً عبر تطبيق منفصل أو بقدرات أقل.",
   },
   {
-    feature: "القصص",
-    dridoud: "دعم كامل للقصص مع استمرارية المنشورات",
-    facebook: "قصص مختصرة",
-    instagram: "قصص قوية لكن بدون تفاعل متقدم",
-    twitter: "غير مخصص للقصص",
-    threads: "قصص نصية فقط",
-    tiktok: "قصص فيديو قصيرة فقط",
+    feature: "نظام الاستكشاف",
+    dridoud: "اقتراحات + هاشتاجات ومنشنات والبحث المتقدم للستكشاف منشورات المتابعين في نفس المكان.",
+    others: "تجارب استكشاف متباعدة وخوارزميات أقل شفافية.",
   },
   {
     feature: "التحكم في المحتوى",
-    dridoud: "تحديد محتوى حساس ومولد بالذكاء الاصطناعي",
-    facebook: "تحكم محدود",
-    instagram: "تعلم آلي ولكن غير واضح",
-    twitter: "ازالة يدوي جزئي",
-    threads: "إعدادات جديدة وغير مستقرة",
-    tiktok: "تحكم آلي مع فلاتر قليلة",
-  },
-  {
-    feature: "الخصوصية",
-    dridoud: "إعدادات خصوصية متقدمة وتحكم كامل",
-    facebook: "إعدادات معقدة",
-    instagram: "تحكم بسيط فقط",
-    twitter: "خيار عام فقط",
-    threads: "محدود بسبب البيانات المشتركة",
-    tiktok: "خصائص إفتراضية ثم ندخل في التعقيد",
-  },
-  {
-    feature: "التفاعل",
-    dridoud: "إعجاب + تعليق + مشاركة + استطلاع",
-    facebook: "تعليقات ومشاركة فقط",
-    instagram: "إعجاب وتعليق محدود",
-    twitter: "إعجاب وتعليق ونشر",
-    threads: "نشر فقط",
-    tiktok: "إعجاب وتعليق شخصي",
-  },
-  {
-    feature: "البحث",
-    dridoud: "بحث شامل عن أشخاص، منشورات، وسوم",
-    facebook: "بحث ضمن المجموعات",
-    instagram: "بحث بالهاشتاق فقط",
-    twitter: "بحث عن حسابات فقط",
-    threads: "بحث محدود",
-    tiktok: "بحث في الفيديوهات فقط",
-  },
-  {
-    feature: "التعدد اللغوي",
-    dridoud: "يدعم عدة لغات بسلاسة",
-    facebook: "يدعم اللغات الأساسية فقط",
-    instagram: "دعم محدود",
-    twitter: "يدعم عدة لغات ولكن معقد",
-    threads: "دعم إنجليزي في الغالب",
-    tiktok: "ترجمة آلية فقط",
+    dridoud: "إعدادات أوضح مع تصنيف المحتوى الحساس ومولدات الذكاء الاصطناعي.",
+    others: "إعدادات متباينة بين منصة وأخرى وقد تكون معقدة.",
   },
   {
     feature: "تجربة المستخدم",
-    dridoud: "منصة واحدة لكل شيء",
-    facebook: "تعدد تطبيقات ومهام",
-    instagram: "منصة منفردة للصور",
-    twitter: "منصة لترندات سريعة",
-    threads: "تجربة جديدة غير مكتملة",
-    tiktok: "تجربة ترفيهية فقط",
+    dridoud: "منصة سهلة بمحتوى منظم دون قيود دون خوارزميات ودون حظر للمحتوى ",
+    others: "  منصات معقدة + تشتت تركيز المستخدم بمحتويات عشوائية + ادمان غير مقبول  .",
   },
 ];
+
 const downloadOptions = [
   {
     label: "Google Play",
@@ -187,7 +94,7 @@ const downloadOptions = [
   {
     label: "تنزيل تطبيق دريدود بصيغة Apk",
     platform: "APK",
-    href: "/apk/dridoud-v2.0.0.apk",
+    href: "/apk/dridoud-v2.7.0.apk",
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
         <path strokeLinecap="round" strokeLinejoin="round" d="M5 7h14v10H5z" />
@@ -243,10 +150,10 @@ export default function Home() {
 
               <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link
-                  href="/apk/dridoud-v2.0.0.apk"
+                  href="/apk/dridoud-v2.7.0.apk"
                   className="inline-flex items-center justify-center gap-3 bg-green-600 hover:bg-green-500 text-white px-8 py-3 rounded-lg font-semibold transition-colors shadow-lg shadow-green-900/30"
                 >
-                  <Image src="/icon.png" alt="APK" width={20} height={20} className="h-5 w-5 rounded-sm" />
+                  <Image src="/android-white.svg" alt="Android" width={20} height={20} className="h-5 w-5" />
                   <span>تنزيل تطبيق دريدود بصيغة Apk</span>
                 </Link>
                 <Link
@@ -297,66 +204,54 @@ export default function Home() {
           </div>
         </div>
       </section>
-      {/* Comparison */}
-      <section className="w-full py-20 sm:py-32 bg-gray-50 dark:bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Comparison */}
+      <section className="w-full py-20 sm:py-32 bg-gray-50 dark:bg-gray-900" dir="rtl" style={{ unicodeBidi: "plaintext" }}>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mb-3">
-              دريدود <span className="text-red-600 dark:text-red-400">vs</span> المنصات الاجتماعية الأخرى
+              دريدود <span className="text-red-600 dark:text-red-400">vs</span> باقي تطبيقات التواصل
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              دريدود يجمع كل الميزات في منصة واحدة، يمنحك التحكم الكامل، ويوازن بين الترفيه والتواصل وصناعة المحتوى دون
-              فرض تجربة محدودة.
+              مقارنة مختصرة وعملية بدون ازدحام: عمود لدريدود وعمود لباقي التطبيقات الاجتماعية.
             </p>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-[960px] w-full text-sm text-gray-700 dark:text-gray-300 border-separate border-spacing-0 rounded-3xl shadow-lg">
-              <thead>
-                <tr className="bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800">
-                  <th className="sticky left-0 bg-white dark:bg-gray-950 px-6 py-4 text-lg font-semibold text-gray-800 dark:text-white text-left">
-                    الميزة
-                  </th>
-                  {comparisonPlatforms.map((platform) => (
-                    <th
-                      key={platform.key}
-                      className={`px-6 py-4 text-left font-semibold text-sm uppercase tracking-[0.3em] border-l border-gray-200 dark:border-gray-800 ${platform.color}`}
-                    >
-                      {platform.label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {comparisonRows.map((row, idx) => (
-                  <tr
-                    key={row.feature}
-                    className={`border-b border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${idx % 2 === 0 ? "bg-white dark:bg-gray-950" : "bg-gray-50 dark:bg-gray-900"}`}
-                  >
-                    <th className="px-6 py-4 text-base font-semibold text-gray-900 dark:text-white text-left">
-                      {row.feature}
-                    </th>
-                    {comparisonPlatforms.map((platform) => (
-                      <td
-                        key={`${row.feature}-${platform.key}`}
-                        className={`px-6 py-4 text-sm leading-relaxed border-l border-gray-200 dark:border-gray-800 ${
-                          platform.key === "dridoud"
-                            ? "bg-red-50 dark:bg-red-900/60 text-red-700 dark:text-red-100 font-semibold"
-                            : "text-gray-700 dark:text-gray-300"
-                        }`}
-                      >
-                        {row[platform.key]}
-                      </td>
-                    ))}
+          <div className="rounded-3xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 shadow-xl overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[720px] text-right" dir="rtl" style={{ unicodeBidi: "plaintext" }}>
+                <thead>
+                  <tr className="bg-gray-100/90 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+                    <th className="px-6 py-5 text-base font-bold text-gray-900 dark:text-white">الميزة</th>
+                    <th className="px-6 py-5 text-base font-bold text-red-700 dark:text-red-300">دريدود</th>
+                    <th className="px-6 py-5 text-base font-bold text-gray-700 dark:text-gray-300">باقي تطبيقات التواصل</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {comparisonRows.map((row, idx) => (
+                    <tr
+                      key={row.feature}
+                      className={`border-b border-gray-200 dark:border-gray-800 last:border-b-0 ${
+                        idx % 2 === 0 ? "bg-white dark:bg-gray-950" : "bg-gray-50/70 dark:bg-gray-900/60"
+                      }`}
+                    >
+                      <th className="px-6 py-5 align-top text-sm sm:text-base font-semibold text-gray-900 dark:text-white w-[22%]">
+                        {row.feature}
+                      </th>
+                      <td className="px-6 py-5 align-top text-sm sm:text-base leading-8 bg-red-100/80 dark:bg-red-950/35 font-semibold w-[39%]" style={{ color: "#7a1020", unicodeBidi: "plaintext" }}>
+                        {row.dridoud}
+                      </td>
+                      <td className="px-6 py-5 align-top text-sm sm:text-base leading-8 text-gray-700 dark:text-gray-300 w-[39%]">
+                        {row.others}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
-
-      {/* 5) Why Dridoud */}
+{/* 5) Why Dridoud */}
       <section className="w-full py-20 sm:py-32 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -431,6 +326,11 @@ export default function Home() {
     </div>
   );
 }
+
+
+
+
+
 
 
 

@@ -13,9 +13,9 @@ const downloadButtons = [
     label: "تنزيل التطبيق من Google Play",
     helper: "يتطلب Android 9.0 فأحدث",
     link: "",
-    logo: "/icon.png",
+    logo: "/android-white.svg",
     theme: "soon",
-    alt: "أيقونة APK",
+    alt: "أيقونة Android",
   },
   {
     id: "ios",
@@ -35,8 +35,8 @@ const downloadButtons = [
     label: "تنزيل APK مباشرة",
     helper: "نسخة مستقرة بدون متجر",
     link: downloadContent.links.apk,
-    logo: "https://img.icons8.com/ios-filled/144/ffffff/apk.png",
-    alt: "ملف APK",
+    logo: "/android-white.svg",
+    alt: "أيقونة Android",
     theme: "apk",
   },
 ];
@@ -128,7 +128,7 @@ function AppVersionCard({ version }) {
           available ? "bg-white text-gray-900 hover:bg-gray-100" : "bg-white/20 text-white cursor-not-allowed"
         }`}
       >
-        {available ? "تحميل الإصدار" : "تحديث قادم"}
+        {available ? "تحميل الإصدار" : "انتهت صلاحيته يرجى استخدام أحدث اصدار من apk"}
       </a>
     </article>
   );
@@ -224,3 +224,5 @@ export default function DownloadPage() {
     </div>
   );
 }
+
+

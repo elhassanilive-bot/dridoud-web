@@ -1,4 +1,4 @@
-import AccountManageClient from './AccountManageClient';
+﻿import AccountManageClient from './AccountManageClient';
 
 export const metadata = {
   title: 'إدارة الحساب',
@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function AccountManagePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-gray-100 text-black">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-gray-100 text-black">
       <AccountManageClient />
     </div>
   );
