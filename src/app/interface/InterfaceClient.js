@@ -57,6 +57,10 @@ function deriveReactionsCount(reactions, postId) {
   return (reactions[postId] || 0);
 }
 
+function postPermalink(postId) {
+  return `/post/${postId}`;
+}
+
 function extractInterestTokens(posts = []) {
   const bucket = new Set();
   const rx = /[A-Za-z\u0600-\u06FF0-9_]{3,}/g;
@@ -205,7 +209,33 @@ function PostText({ text, mentionMap = {} }) {
   );
 }
 
+function ExpandableCommentText({ text = '', maxChars = 210 }) {
+  const fullText = String(text || '').trim();
+  const [expanded, setExpanded] = useState(false);
+  const shouldTrim = fullText.length > maxChars;
+  const shownText =
+    shouldTrim && !expanded
+      ? `${fullText.slice(0, maxChars).trim()}...`
+      : fullText;
+
+  return (
+    <div className="space-y-1">
+      <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-gray-800">{shownText}</p>
+      {shouldTrim ? (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="text-[11px] font-black text-blue-700 hover:underline"
+        >
+          {expanded ? 'عرض أقل' : 'عرض المزيد'}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 export default function InterfaceClient() {
+  const router = useRouter();
   const [active, setActive] = useState('home');
   const [homeTab, setHomeTab] = useState('latest'); // latest | suggested
   const [suggestedFilter, setSuggestedFilter] = useState('following');
@@ -733,13 +763,18 @@ export default function InterfaceClient() {
 
   async function copyPostLink(post) {
     if (!post?.id) return;
-    const link = `${window.location.origin}/interface#post-${post.id}`;
+    const link = `${window.location.origin}${postPermalink(post.id)}`;
     try {
       await navigator.clipboard.writeText(link);
       notify('تم نسخ رابط المنشور');
     } catch {
       notify('تعذر النسخ التلقائي، الرابط جاهز في شريط العنوان', 'error');
     }
+  }
+
+  function openPostPage(post) {
+    if (!post?.id) return;
+    router.push(postPermalink(post.id));
   }
 
   async function reportPost(post) {
@@ -863,19 +898,20 @@ export default function InterfaceClient() {
           mentionMap={mentionMap}
           poll={pollsByPost[p.id] || null}
           onVotePoll={votePoll}
+          onOpenPost={() => openPostPage(p)}
         />
       ))}
 
       {active === 'reels' && derived.reels.map((p) => (
-        <PostCard key={`reel-${p.id}`} post={p} me={me} isLiked={likedByPost.has(p.id)} likeCount={deriveReactionsCount(likeCounts, p.id)} isFollowing={followed.has(p.user_id)} comments={commentsByPost[p.id] || []} originalPost={p?.original_post_id ? postsById[p.original_post_id] || null : null} onToggleLike={() => toggleLike(p.id)} onToggleFollow={() => toggleFollow(p.user_id)} onOpenComments={() => setCommentModalPost(p)} onShare={() => openShareComposer(p)} onDeletePost={() => setDeleteTargetPost(p)} onEditPost={() => openEditPostModal(p)} onCopyLink={() => copyPostLink(p)} onReportPost={() => reportPost(p)} onBlockUser={() => setBlockTargetPost(p)} label="ريلز" mentionMap={mentionMap} poll={pollsByPost[p.id] || null} onVotePoll={votePoll} />
+        <PostCard key={`reel-${p.id}`} post={p} me={me} isLiked={likedByPost.has(p.id)} likeCount={deriveReactionsCount(likeCounts, p.id)} isFollowing={followed.has(p.user_id)} comments={commentsByPost[p.id] || []} originalPost={p?.original_post_id ? postsById[p.original_post_id] || null : null} onToggleLike={() => toggleLike(p.id)} onToggleFollow={() => toggleFollow(p.user_id)} onOpenComments={() => setCommentModalPost(p)} onShare={() => openShareComposer(p)} onDeletePost={() => setDeleteTargetPost(p)} onEditPost={() => openEditPostModal(p)} onCopyLink={() => copyPostLink(p)} onReportPost={() => reportPost(p)} onBlockUser={() => setBlockTargetPost(p)} label="ريلز" mentionMap={mentionMap} poll={pollsByPost[p.id] || null} onVotePoll={votePoll} onOpenPost={() => openPostPage(p)} />
       ))}
 
       {active === 'groups' && derived.groups.map((p) => (
-        <PostCard key={`group-${p.id}`} post={p} me={me} isLiked={likedByPost.has(p.id)} likeCount={deriveReactionsCount(likeCounts, p.id)} isFollowing={followed.has(p.user_id)} comments={commentsByPost[p.id] || []} originalPost={p?.original_post_id ? postsById[p.original_post_id] || null : null} onToggleLike={() => toggleLike(p.id)} onToggleFollow={() => toggleFollow(p.user_id)} onOpenComments={() => setCommentModalPost(p)} onShare={() => openShareComposer(p)} onDeletePost={() => setDeleteTargetPost(p)} onEditPost={() => openEditPostModal(p)} onCopyLink={() => copyPostLink(p)} onReportPost={() => reportPost(p)} onBlockUser={() => setBlockTargetPost(p)} label={`مجموعة: ${p?.groups?.name || ''}`} mentionMap={mentionMap} poll={pollsByPost[p.id] || null} onVotePoll={votePoll} />
+        <PostCard key={`group-${p.id}`} post={p} me={me} isLiked={likedByPost.has(p.id)} likeCount={deriveReactionsCount(likeCounts, p.id)} isFollowing={followed.has(p.user_id)} comments={commentsByPost[p.id] || []} originalPost={p?.original_post_id ? postsById[p.original_post_id] || null : null} onToggleLike={() => toggleLike(p.id)} onToggleFollow={() => toggleFollow(p.user_id)} onOpenComments={() => setCommentModalPost(p)} onShare={() => openShareComposer(p)} onDeletePost={() => setDeleteTargetPost(p)} onEditPost={() => openEditPostModal(p)} onCopyLink={() => copyPostLink(p)} onReportPost={() => reportPost(p)} onBlockUser={() => setBlockTargetPost(p)} label={`مجموعة: ${p?.groups?.name || ''}`} mentionMap={mentionMap} poll={pollsByPost[p.id] || null} onVotePoll={votePoll} onOpenPost={() => openPostPage(p)} />
       ))}
 
       {active === 'channels' && derived.channels.map((p) => (
-        <PostCard key={`channel-${p.id}`} post={p} me={me} isLiked={likedByPost.has(p.id)} likeCount={deriveReactionsCount(likeCounts, p.id)} isFollowing={followed.has(p.user_id)} comments={commentsByPost[p.id] || []} originalPost={p?.original_post_id ? postsById[p.original_post_id] || null : null} onToggleLike={() => toggleLike(p.id)} onToggleFollow={() => toggleFollow(p.user_id)} onOpenComments={() => setCommentModalPost(p)} onShare={() => openShareComposer(p)} onDeletePost={() => setDeleteTargetPost(p)} onEditPost={() => openEditPostModal(p)} onCopyLink={() => copyPostLink(p)} onReportPost={() => reportPost(p)} onBlockUser={() => setBlockTargetPost(p)} label={`قناة: ${p?.channels?.name || p?.channels?.username || ''}`} mentionMap={mentionMap} poll={pollsByPost[p.id] || null} onVotePoll={votePoll} />
+        <PostCard key={`channel-${p.id}`} post={p} me={me} isLiked={likedByPost.has(p.id)} likeCount={deriveReactionsCount(likeCounts, p.id)} isFollowing={followed.has(p.user_id)} comments={commentsByPost[p.id] || []} originalPost={p?.original_post_id ? postsById[p.original_post_id] || null : null} onToggleLike={() => toggleLike(p.id)} onToggleFollow={() => toggleFollow(p.user_id)} onOpenComments={() => setCommentModalPost(p)} onShare={() => openShareComposer(p)} onDeletePost={() => setDeleteTargetPost(p)} onEditPost={() => openEditPostModal(p)} onCopyLink={() => copyPostLink(p)} onReportPost={() => reportPost(p)} onBlockUser={() => setBlockTargetPost(p)} label={`قناة: ${p?.channels?.name || p?.channels?.username || ''}`} mentionMap={mentionMap} poll={pollsByPost[p.id] || null} onVotePoll={votePoll} onOpenPost={() => openPostPage(p)} />
       ))}
       {active === 'explore' && profiles.map((u) => (
         <article key={u.user_id} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
@@ -1119,6 +1155,7 @@ function PostCard({
   mentionMap,
   poll,
   onVotePoll,
+  onOpenPost,
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [revealSensitive, setRevealSensitive] = useState(false);
@@ -1163,8 +1200,19 @@ function PostCard({
 
   const bgStyle = parseBackgroundStyle(post?.background_style);
 
+  function handleCardOpen(event) {
+    const interactive = event?.target?.closest?.('button,a,input,textarea,select,label,summary,[data-no-open-post]');
+    if (interactive) return;
+    onOpenPost?.();
+  }
+
+  function openFromSurface(event) {
+    event?.stopPropagation?.();
+    onOpenPost?.();
+  }
+
   return (
-    <article id={`post-${post.id}`} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm" dir="rtl">
+    <article id={`post-${post.id}`} className="cursor-pointer rounded-2xl border border-gray-200 bg-white p-4 shadow-sm" dir="rtl" onClick={handleCardOpen}>
       <div className="mb-4 flex items-start justify-between gap-4" dir="rtl">
         <div className="flex min-w-0 items-start gap-3 text-right">
           <Avatar src={post?.profiles?.avatar_url || post?.channels?.avatar_url || post?.groups?.avatar_url} alt={username} />
@@ -1247,7 +1295,7 @@ function PostCard({
         <div className="space-y-3">
           <div className="text-right text-sm font-semibold text-gray-700">أعاد {authorName} نشر هذا</div>
           {String(post?.content || post?.description || '').trim() ? (
-            <div className="rounded-2xl p-3" style={textContainerStyle(bgStyle) || undefined}>
+            <div className="rounded-2xl p-3" style={textContainerStyle(bgStyle) || undefined} onClick={openFromSurface}>
               <PostText text={post.content || post.description} mentionMap={mentionMap} />
             </div>
           ) : null}
@@ -1261,7 +1309,7 @@ function PostCard({
             </div>
             <PostText text={originalPost?.content || originalPost?.description || 'منشور بدون نص'} mentionMap={mentionMap} />
             {mediaFromPost(originalPost)[0] ? (
-              <div className="mt-3 overflow-hidden rounded-xl border border-gray-100 bg-black">
+              <div className="mt-3 overflow-hidden rounded-xl border border-gray-100 bg-black" onClick={openFromSurface}>
                 {mediaFromPost(originalPost)[0].type === 'video' ? (
                   <video src={mediaFromPost(originalPost)[0].full || mediaFromPost(originalPost)[0].url} controls className="h-72 w-full object-contain" preload="metadata" />
                 ) : (
@@ -1273,13 +1321,13 @@ function PostCard({
           </div>
         </div>
       ) : (
-        <div className="rounded-2xl p-3" style={textContainerStyle(bgStyle) || undefined}>
+        <div className="w-full rounded-2xl p-3 text-right transition hover:opacity-95" style={textContainerStyle(bgStyle) || undefined} onClick={openFromSurface}>
           <PostText text={post.content || post.description || 'منشور بدون نص'} mentionMap={mentionMap} />
         </div>
       )}
 
       {first ? (
-        <div className="mt-3 overflow-hidden rounded-xl border border-gray-100 bg-black">
+              <div className="mt-3 overflow-hidden rounded-xl border border-gray-100 bg-black" onClick={openFromSurface}>
           {post?.is_sensitive && !revealSensitive ? (
             <div className="flex h-72 w-full items-center justify-center bg-gray-900 text-center text-sm font-black text-white/90">
               <div>
@@ -1298,7 +1346,8 @@ function PostCard({
 
       {poll ? <PostPollWidget poll={poll} onVote={onVotePoll} /> : null}
 
-      <div className="mt-3 flex items-center justify-between gap-5 text-xs font-semibold text-gray-600">
+      <div className="mt-3 flex items-center justify-between gap-3 text-xs font-semibold text-gray-600">
+
         <span>{likeCount} إعجاب</span>
         <button type="button" onClick={post?.allow_comments === false ? undefined : onOpenComments} className={post?.allow_comments === false ? 'opacity-50' : 'hover:text-red-700 hover:underline'}>{comments.length} تعليق</button>
       </div>
@@ -1376,48 +1425,63 @@ function CommentsModal({
     setEditingText('');
   }
 
-  function renderComment(comment, isReply = false) {
+  function renderComment(comment, depth = 0) {
     const authorName = comment?.profiles?.full_name || comment?.profiles?.username || 'مستخدم';
     const username = comment?.profiles?.username || 'user';
+    const profileHandle = normalizeHandle(username) || comment?.user_id || 'user';
     const summary = reactions[comment.id] || { likeCount: 0, userReaction: null };
     const replies = byParent[comment.id] || [];
     const canManage = comment.user_id === me;
+    const isReply = depth > 0;
 
     return (
-      <div key={comment.id} className={isReply ? 'mr-10 mt-2' : 'mt-3'}>
-        <div className="rounded-2xl bg-gray-50 p-3 text-right" dir="rtl">
+      <div key={comment.id} className={isReply ? 'relative mt-2 pr-3 sm:pr-5' : 'mt-3'}>
+        {isReply ? <span className="pointer-events-none absolute bottom-2 right-0 top-2 w-px bg-gray-200" /> : null}
+        <div className={['rounded-2xl p-3 text-right', isReply ? 'border border-gray-100 bg-white' : 'bg-gray-50'].join(' ')} dir="rtl">
           <div className="flex items-start gap-3">
-            <Avatar src={comment?.profiles?.avatar_url} alt={username} />
+            <div className={isReply ? 'scale-[0.92] pt-0.5' : ''}>
+              <Link href={`/${profileHandle}`} className="block">
+                <Avatar src={comment?.profiles?.avatar_url} alt={username} />
+              </Link>
+            </div>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <Link href={`/${normalizeHandle(username) || username}`} className="font-black text-gray-950 hover:underline">{authorName}</Link>
-                <span className="text-xs text-gray-500">{formatAgo(comment.created_at)}</span>
+                <Link href={`/${profileHandle}`} className="text-[15px] font-black leading-6 text-gray-950 hover:underline sm:text-base">{authorName}</Link>
+                <Link href={`/${profileHandle}`} className="text-xs font-semibold text-gray-500 hover:text-red-700 hover:underline">@{normalizeHandle(username) || username}</Link>
+                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-500">{formatAgo(comment.created_at)}</span>
               </div>
               {editingId === comment.id ? (
                 <div className="mt-2 flex gap-2">
                   <button type="button" onClick={() => saveEdit(comment.id)} className="rounded-lg bg-red-700 px-3 py-1 text-xs font-black text-white">حفظ</button>
                   <input value={editingText} onChange={(e) => setEditingText(e.target.value)} className="w-full rounded-xl border border-gray-200 px-3 py-2 text-right text-sm outline-none" />
                 </div>
-              ) : (
-                <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-gray-800">{comment.content}</p>
-              )}
-              <div className="mt-2 flex flex-wrap items-center gap-3 text-xs font-bold text-gray-600">
-                <button type="button" onClick={() => onToggleReaction(comment.id)} className={summary.userReaction === 'like' ? 'text-red-700' : 'hover:text-red-700'}>إعجاب {summary.likeCount ? summary.likeCount : ''}</button>
-                <button type="button" onClick={() => setReplyTo(comment)} className="hover:text-red-700">رد</button>
-                {canManage ? <button type="button" onClick={() => { setEditingId(comment.id); setEditingText(comment.content || ''); }} className="hover:text-red-700">تعديل</button> : null}
-                {canManage ? <button type="button" onClick={() => onDeleteComment(comment.id)} className="hover:text-red-700">حذف</button> : null}
+              ) : <ExpandableCommentText text={comment.content} />}
+              <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs font-bold text-gray-600 sm:gap-2">
+                <button type="button" onClick={() => onToggleReaction(comment.id)} className={[
+                  'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 transition',
+                  summary.userReaction === 'like' ? 'border-red-200 bg-red-50 text-red-700' : 'border-gray-200 bg-white text-gray-700 hover:border-red-200 hover:text-red-700',
+                ].join(' ')}>
+                  <LikeIcon filled={summary.userReaction === 'like'} className={summary.userReaction === 'like' ? 'text-red-700' : 'text-gray-600'} />
+                  <span>إعجاب {summary.likeCount ? summary.likeCount : ''}</span>
+                </button>
+                <button type="button" onClick={() => setReplyTo(comment)} className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-gray-700 transition hover:border-blue-200 hover:text-blue-700">
+                  <ReplyIcon className="text-blue-700" />
+                  <span>رد</span>
+                </button>
+                {canManage ? <button type="button" onClick={() => { setEditingId(comment.id); setEditingText(comment.content || ''); }} className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-gray-700 transition hover:border-amber-200 hover:text-amber-700"><EditIcon className="text-amber-700" /><span>تعديل</span></button> : null}
+                {canManage ? <button type="button" onClick={() => onDeleteComment(comment.id)} className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-gray-700 transition hover:border-red-200 hover:text-red-700"><DeleteIcon className="text-red-700" /><span>حذف</span></button> : null}
               </div>
             </div>
           </div>
         </div>
-        {replies.map((reply) => renderComment(reply, true))}
+        {replies.map((reply) => renderComment(reply, depth + 1))}
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 p-0 sm:items-center sm:p-4" dir="rtl">
-      <div className="flex max-h-[88vh] w-full max-w-2xl flex-col rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 p-1 sm:items-center sm:p-4" dir="rtl">
+      <div className="flex max-h-[92vh] w-full max-w-2xl flex-col rounded-t-3xl bg-white shadow-2xl sm:max-h-[88vh] sm:rounded-3xl">
         <div className="flex items-center justify-between border-b border-gray-100 p-4">
           <button type="button" onClick={onClose} className="rounded-full bg-gray-100 px-3 py-1 text-sm font-black text-gray-700">إغلاق</button>
           <div className="text-right">
@@ -1426,7 +1490,7 @@ function CommentsModal({
           </div>
         </div>
         <div className="flex-1 overflow-y-auto p-4">
-          {(byParent.root || []).length ? (byParent.root || []).map((comment) => renderComment(comment)) : <div className="rounded-2xl bg-gray-50 p-8 text-center text-sm text-gray-500">لا توجد تعليقات بعد. كن أول من يعلق.</div>}
+          {(byParent.root || []).length ? (byParent.root || []).map((comment) => renderComment(comment, 0)) : <div className="rounded-2xl bg-gray-50 p-8 text-center text-sm text-gray-500">لا توجد تعليقات بعد. كن أول من يعلق.</div>}
         </div>
         {replyTo ? (
           <div className="mx-4 mb-2 flex items-center justify-between rounded-2xl bg-red-50 px-3 py-2 text-xs font-bold text-red-800">
@@ -1434,9 +1498,9 @@ function CommentsModal({
             <span>الرد على {replyTo?.profiles?.full_name || replyTo?.profiles?.username || 'مستخدم'}</span>
           </div>
         ) : null}
-        <form onSubmit={submit} className="flex gap-2 border-t border-gray-100 p-4">
-          <button type="submit" className="rounded-xl bg-red-700 px-4 py-2 text-sm font-black text-white hover:bg-red-800">إرسال</button>
-          <input value={text} onChange={(e) => setText(e.target.value)} placeholder={replyTo ? 'اكتب ردًا...' : 'اكتب تعليقًا...'} className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2 text-right text-sm outline-none focus:border-red-300 focus:bg-white" />
+        <form onSubmit={submit} className="flex flex-col gap-2 border-t border-gray-100 p-3 sm:flex-row sm:p-4">
+          <button type="submit" className="order-2 rounded-xl bg-red-700 px-4 py-2 text-sm font-black text-white hover:bg-red-800 sm:order-1">إرسال</button>
+          <input value={text} onChange={(e) => setText(e.target.value)} placeholder={replyTo ? 'اكتب ردًا...' : 'اكتب تعليقًا...'} className="order-1 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2 text-right text-sm outline-none focus:border-red-300 focus:bg-white sm:order-2" />
         </form>
       </div>
     </div>
@@ -1501,6 +1565,35 @@ function ShareIcon({ className = '' }) {
   );
 }
 
+
+function ReplyIcon({ className = '' }) {
+  return (
+    <svg viewBox="0 0 24 24" className={`h-4 w-4 ${className}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m9 17-5-5 5-5" />
+      <path d="M20 17v-2a7 7 0 0 0-7-7H4" />
+    </svg>
+  );
+}
+
+function EditIcon({ className = '' }) {
+  return (
+    <svg viewBox="0 0 24 24" className={`h-4 w-4 ${className}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" />
+    </svg>
+  );
+}
+
+function DeleteIcon({ className = '' }) {
+  return (
+    <svg viewBox="0 0 24 24" className={`h-4 w-4 ${className}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 6h18" />
+      <path d="M8 6V4h8v2" />
+      <path d="M19 6 18 20a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+      <path d="M10 11v6M14 11v6" />
+    </svg>
+  );
+}
 function SettingsSidebar() {
   const sections = [
     {
@@ -1786,6 +1879,14 @@ function ShareComposerModal({ post, quote, onChangeQuote, onClose, onShareNow, o
     </div>
   );
 }
+
+
+
+
+
+
+
+
 
 
 
