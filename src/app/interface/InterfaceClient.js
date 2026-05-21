@@ -978,13 +978,25 @@ export default function InterfaceClient() {
           {loading ? (
             <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center text-gray-500">جاري تحميل المحتوى...</div>
           ) : error ? (
-            <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center text-red-700">
-              <p>{error}</p>
-              {authRequired ? (
-                <Link href="/account" className="mt-3 inline-flex rounded-full bg-red-700 px-4 py-2 text-xs font-black text-white hover:bg-red-800">
-                  تسجيل الدخول لعرض المحتوى
-                </Link>
-              ) : null}
+            <div className="relative overflow-hidden rounded-3xl border border-rose-200/70 bg-gradient-to-br from-rose-50 via-white to-amber-50 p-8 text-center shadow-[0_18px_45px_-28px_rgba(190,24,93,0.45)]">
+              <div className="pointer-events-none absolute -left-10 -top-10 h-28 w-28 rounded-full bg-rose-200/40 blur-2xl" />
+              <div className="pointer-events-none absolute -bottom-12 -right-10 h-32 w-32 rounded-full bg-amber-200/40 blur-2xl" />
+              <div className="relative">
+                <div className="mx-auto mb-3 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-rose-600 shadow-sm ring-1 ring-rose-100">
+                  <span className="text-xl" aria-hidden="true">🔒</span>
+                </div>
+                <h3 className="text-xl font-extrabold text-gray-900">يلزم تسجيل الدخول</h3>
+                <p className="mx-auto mt-2 max-w-md text-sm leading-7 text-gray-600">{error}</p>
+                {authRequired ? (
+                  <Link
+                    href="/account"
+                    className="mt-5 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-rose-700 to-rose-600 px-6 py-2.5 text-sm font-black text-white shadow-[0_10px_22px_-14px_rgba(190,24,93,0.9)] transition hover:scale-[1.02] hover:from-rose-800 hover:to-rose-700"
+                  >
+                    <span>تسجيل الدخول لعرض المحتوى</span>
+                    <span aria-hidden="true">←</span>
+                  </Link>
+                ) : null}
+              </div>
             </div>
           ) : (
             centerContent
@@ -1774,6 +1786,7 @@ function ShareComposerModal({ post, quote, onChangeQuote, onClose, onShareNow, o
     </div>
   );
 }
+
 
 
 
