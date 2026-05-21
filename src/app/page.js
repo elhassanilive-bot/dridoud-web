@@ -94,7 +94,7 @@ const downloadOptions = [
   {
     label: "تنزيل تطبيق دريدود بصيغة Apk",
     platform: "APK",
-    href: "/apk/dridoud-v2.7.0.apk",
+    href: "/apk/dridoud-v2.7.0-arm64-v8a.apk",
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
         <path strokeLinecap="round" strokeLinejoin="round" d="M5 7h14v10H5z" />
@@ -150,7 +150,7 @@ export default function Home() {
 
               <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link
-                  href="/apk/dridoud-v2.7.0.apk"
+                  href="/apk/dridoud-v2.7.0-arm64-v8a.apk"
                   className="inline-flex items-center justify-center gap-3 bg-green-600 hover:bg-green-500 text-white px-8 py-3 rounded-lg font-semibold transition-colors shadow-lg shadow-green-900/30"
                 >
                   <Image src="/android-white.svg" alt="Android" width={20} height={20} className="h-5 w-5" />
@@ -326,6 +326,7 @@ export default function Home() {
     </div>
   );
 }
+
 
 
 

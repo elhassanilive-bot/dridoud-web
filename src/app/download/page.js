@@ -107,8 +107,9 @@ function DownloadButton({ button }) {
   );
 }
 
-function AppVersionCard({ version }) {
+function AppVersionCard({ version, apkVariants = [] }) {
   const available = Boolean(version.downloadLink);
+  const isLatest = version.version === "2.7.0" && apkVariants.length > 0;
 
   return (
     <article className="bg-gray-900 dark:bg-gray-800 text-white rounded-3xl p-6 shadow-2xl border border-white/5 flex flex-col gap-3">
@@ -120,22 +121,40 @@ function AppVersionCard({ version }) {
         <span className="text-xs uppercase tracking-[0.4em] text-green-300">{version.date}</span>
       </div>
       <p className="text-gray-200 leading-relaxed">{version.description}</p>
-      <a
-        href={available ? version.downloadLink : "#"}
-        download={available ? true : undefined}
-        aria-disabled={!available}
-        className={`mt-3 w-full rounded-full px-4 py-2 font-semibold transition ${
-          available ? "bg-white text-gray-900 hover:bg-gray-100" : "bg-white/20 text-white cursor-not-allowed"
-        }`}
-      >
-        {available ? "تحميل الإصدار" : "انتهت صلاحيته يرجى استخدام أحدث اصدار من apk"}
-      </a>
+
+      {isLatest ? (
+        <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-3">
+          {apkVariants.map((apk) => (
+            <a
+              key={apk.id}
+              href={apk.link}
+              download
+              className="rounded-2xl border border-emerald-400/50 bg-emerald-500/15 px-4 py-3 hover:bg-emerald-500/25 transition"
+            >
+              <p className="text-sm font-bold text-emerald-200">{apk.label}</p>
+              <p className="text-xs text-emerald-100/80 mt-1">{apk.helper}</p>
+            </a>
+          ))}
+        </div>
+      ) : (
+        <a
+          href={available ? version.downloadLink : "#"}
+          download={available ? true : undefined}
+          aria-disabled={!available}
+          className={`mt-3 w-full rounded-full px-4 py-2 font-semibold transition ${
+            available ? "bg-white text-gray-900 hover:bg-gray-100" : "bg-white/20 text-white cursor-not-allowed"
+          }`}
+        >
+          {available ? "تحميل الإصدار" : "انتهت صلاحيته يرجى استخدام أحدث اصدار من apk"}
+        </a>
+      )}
     </article>
   );
 }
 
 export default function DownloadPage() {
   const versions = downloadContent.versions;
+  const apkVariants = downloadContent.apkVariants || [];
 
   return (
     <div className="w-full">
@@ -179,7 +198,7 @@ export default function DownloadPage() {
           ) : (
             <div className="grid gap-6">
               {versions.map((version) => (
-                <AppVersionCard key={version.version} version={version} />
+                <AppVersionCard key={version.version} version={version} apkVariants={apkVariants} />
               ))}
             </div>
           )}
@@ -224,5 +243,8 @@ export default function DownloadPage() {
     </div>
   );
 }
+
+
+
 
 
