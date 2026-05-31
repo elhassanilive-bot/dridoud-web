@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { site } from "@/config/site";
 import Script from "next/script";
+import { LanguageProvider } from "@/lib/i18n/LanguageProvider";
 
 export const metadata = {
   metadataBase: new URL(site.url),
@@ -116,9 +117,11 @@ export default function RootLayout({ children }) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
         />
-        <Navbar />
-        <main className="min-h-screen pt-16">{children}</main>
-        <Footer />
+        <LanguageProvider>
+          <Navbar />
+          <main className="min-h-screen pt-16">{children}</main>
+          <Footer />
+        </LanguageProvider>
       </body>
     </html>
   );

@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
-export default function FaqAccordion({ sections }) {
+export default function FaqAccordion({ sections, copy }) {
   const [search, setSearch] = useState('');
   const [openId, setOpenId] = useState(() => {
     if (typeof window === 'undefined') {
@@ -49,24 +49,24 @@ export default function FaqAccordion({ sections }) {
     <div className="space-y-6">
       <div className="rounded-3xl border border-gray-200 bg-white/90 p-6 shadow-sm backdrop-blur dark:border-gray-800 dark:bg-gray-900/70">
         <label className="relative w-full">
-          <span className="sr-only">بحث الأسئلة</span>
+          <span className="sr-only">{copy.search}</span>
           <input
             type="search"
             value={search}
             onChange={handleSearchChange}
-            placeholder="ابحث عن موضوع أو سؤال"
+            placeholder={copy.search}
             className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 pr-12 text-sm text-gray-700 outline-none transition focus:border-red-500 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-100"
           />
           <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
         </label>
         <p className="mt-3 text-xs uppercase tracking-[0.4em] text-red-600">
-          {totalMatches} نتيجة
+          {totalMatches} {copy.results}
         </p>
       </div>
 
       {filteredSections.length === 0 && (
         <div className="rounded-3xl border border-dashed border-red-300 bg-red-50/70 p-6 text-sm text-red-700 dark:border-red-700/50 dark:bg-red-900/60">
-          لم يتم العثور على نتائج مطابقة. جرّب كلمات مختلفة.
+          {copy.noResults}
         </div>
       )}
 

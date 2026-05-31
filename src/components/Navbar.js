@@ -3,87 +3,201 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
+
+const navCopy = {
+  ar: {
+    brand: 'دريدود',
+    menu: 'القائمة',
+    close: 'إغلاق',
+    openMenu: 'فتح القائمة',
+    closeMenu: 'إغلاق القائمة',
+    switchLabel: 'English',
+    links: {
+      interface: 'الواجهة',
+      home: 'الرئيسية',
+      features: 'الميزات',
+      download: 'تحميل',
+      account: 'الحساب',
+      reels: 'الريلز',
+      groups: 'المجموعات',
+      channels: 'القنوات',
+      discover: 'استكشاف',
+      createPost: 'إنشاء منشور',
+      downloadApp: 'تحميل التطبيق',
+      accountSettings: 'إعدادات الحساب',
+      securityPanel: 'لوحة الأمان',
+      verificationRequests: 'إدارة طلبات التوثيق',
+      appTheme: 'مظهر التطبيق',
+      notificationSettings: 'إعدادات الإشعارات',
+      verifyAccount: 'توثيق الحساب',
+      languages: 'اللغات',
+      accounts: 'الحسابات',
+      accountPrivacy: 'خصوصية الحساب',
+      activityStatus: 'النشاط والحالة',
+      accountManagement: 'إدارة الحساب',
+      loginSecurity: 'الأمان وتسجيل الدخول',
+      hashtags: 'الوسوم @ والذكر',
+      videoControl: 'التحكم بالفيديوهات',
+      privacy: 'سياسة الخصوصية',
+      terms: 'الشروط والأحكام',
+      agreements: 'الاتفاقيات',
+      security: 'أمان البيانات',
+      dmca: 'حقوق DMCA',
+      contact: 'اتصل بنا',
+      faq: 'الأسئلة الشائعة',
+      complaints: 'شكاوى وبلاغات',
+      deletion: 'طلب حذف الحساب والبيانات',
+    },
+    columns: {
+      channels: 'القنوات والصفحات',
+      sections: 'الأقسام والإعدادات',
+      app: 'التطبيق',
+      content: 'المحتوى والنشر',
+      settings: 'إعدادات وتخصيص',
+      privacy: 'الأمن والخصوصية',
+      tools: 'أدوات المحتوى',
+      support: 'المعلومات والدعم',
+    },
+  },
+  en: {
+    brand: 'Dridoud',
+    menu: 'Menu',
+    close: 'Close',
+    openMenu: 'Open menu',
+    closeMenu: 'Close menu',
+    switchLabel: 'العربية',
+    links: {
+      interface: 'Interface',
+      home: 'Home',
+      features: 'Features',
+      download: 'Download',
+      account: 'Account',
+      reels: 'Reels',
+      groups: 'Groups',
+      channels: 'Channels',
+      discover: 'Discover',
+      createPost: 'Create Post',
+      downloadApp: 'Download App',
+      accountSettings: 'Account Settings',
+      securityPanel: 'Security Panel',
+      verificationRequests: 'Verification Requests',
+      appTheme: 'App Theme',
+      notificationSettings: 'Notifications',
+      verifyAccount: 'Verify Account',
+      languages: 'Languages',
+      accounts: 'Accounts',
+      accountPrivacy: 'Account Privacy',
+      activityStatus: 'Activity Status',
+      accountManagement: 'Account Management',
+      loginSecurity: 'Login Security',
+      hashtags: 'Hashtags and Mentions',
+      videoControl: 'Video Controls',
+      privacy: 'Privacy Policy',
+      terms: 'Terms',
+      agreements: 'Agreements',
+      security: 'Data Security',
+      dmca: 'DMCA Rights',
+      contact: 'Contact Us',
+      faq: 'FAQ',
+      complaints: 'Complaints',
+      deletion: 'Delete Account Request',
+    },
+    columns: {
+      channels: 'Channels and Pages',
+      sections: 'Sections and Settings',
+      app: 'App',
+      content: 'Content and Publishing',
+      settings: 'Settings and Personalization',
+      privacy: 'Security and Privacy',
+      tools: 'Content Tools',
+      support: 'Information and Support',
+    },
+  },
+};
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const { language, direction, isArabic, toggleLanguage } = useLanguage();
+  const copy = navCopy[language];
 
   const links = [
-    { href: '/interface', label: 'الواجهة', icon: InterfaceIcon },
-    { href: '/', label: 'الرئيسية', icon: HomeIcon },
-    { href: '/features', label: 'الميزات', icon: SparklesIcon },
-    { href: '/download', label: 'تحميل', icon: DownloadIcon },
-    { href: '/account', label: 'الحساب', icon: AccountIcon },
+    { href: '/interface', label: copy.links.interface, icon: InterfaceIcon },
+    { href: '/', label: copy.links.home, icon: HomeIcon },
+    { href: '/features', label: copy.links.features, icon: SparklesIcon },
+    { href: '/download', label: copy.links.download, icon: DownloadIcon },
+    { href: '/account', label: copy.links.account, icon: AccountIcon },
   ];
 
   const mobileMegaColumns = [
     {
-      title: 'القنوات والصفحات',
+      title: copy.columns.channels,
       sections: [
         {
-          title: 'التطبيق',
+          title: copy.columns.app,
           items: [
-            { href: '/', label: 'الرئيسية', icon: HomeIcon },
-            { href: '/interface?view=reels', label: 'الريلز', icon: ReelIcon },
-            { href: '/interface?view=groups', label: 'المجموعات', icon: GroupIcon },
-            { href: '/interface?view=channels', label: 'القنوات', icon: ChannelIcon },
-            { href: '/interface?view=discover', label: 'استكشاف', icon: SearchIcon },
+            { href: '/', label: copy.links.home, icon: HomeIcon },
+            { href: '/interface?view=reels', label: copy.links.reels, icon: ReelIcon },
+            { href: '/interface?view=groups', label: copy.links.groups, icon: GroupIcon },
+            { href: '/interface?view=channels', label: copy.links.channels, icon: ChannelIcon },
+            { href: '/interface?view=discover', label: copy.links.discover, icon: SearchIcon },
           ],
         },
         {
-          title: 'المحتوى والنشر',
+          title: copy.columns.content,
           items: [
-            { href: '/create-post', label: 'إنشاء منشور', icon: EditIcon },
-            { href: '/features', label: 'الميزات', icon: SparklesIcon },
-            { href: '/download', label: 'تحميل التطبيق', icon: DownloadIcon },
+            { href: '/create-post', label: copy.links.createPost, icon: EditIcon },
+            { href: '/features', label: copy.links.features, icon: SparklesIcon },
+            { href: '/download', label: copy.links.downloadApp, icon: DownloadIcon },
           ],
         },
       ],
     },
     {
-      title: 'الأقسام والإعدادات',
+      title: copy.columns.sections,
       sections: [
         {
-          title: 'إعدادات وتخصيص',
+          title: copy.columns.settings,
           items: [
-            { href: '/account/me', label: 'إعدادات الحساب', icon: AccountIcon },
-            { href: '/security', label: 'لوحة الأمان', icon: ShieldIcon },
-            { href: '/account/me', label: 'إدارة طلبات التوثيق', icon: VerifyIcon },
-            { href: '/account/me', label: 'مظهر التطبيق', icon: ThemeIcon },
-            { href: '/account/me', label: 'إعدادات الإشعارات', icon: BellIcon },
-            { href: '/account/me', label: 'توثيق الحساب', icon: VerifyIcon },
-            { href: '/account/me', label: 'اللغات', icon: LanguageIcon },
-            { href: '/account/me', label: 'الحسابات', icon: AccountsIcon },
+            { href: '/account/me', label: copy.links.accountSettings, icon: AccountIcon },
+            { href: '/security', label: copy.links.securityPanel, icon: ShieldIcon },
+            { href: '/account/me', label: copy.links.verificationRequests, icon: VerifyIcon },
+            { href: '/account/me', label: copy.links.appTheme, icon: ThemeIcon },
+            { href: '/account/me', label: copy.links.notificationSettings, icon: BellIcon },
+            { href: '/account/me', label: copy.links.verifyAccount, icon: VerifyIcon },
+            { href: '/account/me', label: copy.links.languages, icon: LanguageIcon },
+            { href: '/account/me', label: copy.links.accounts, icon: AccountsIcon },
           ],
         },
         {
-          title: 'الأمن والخصوصية',
+          title: copy.columns.privacy,
           items: [
-            { href: '/account/me', label: 'خصوصية الحساب', icon: LockIcon },
-            { href: '/account/me', label: 'النشاط والحالة', icon: ActivityIcon },
-            { href: '/account/me', label: 'إدارة الحساب', icon: SettingsIcon },
-            { href: '/account', label: 'الأمان وتسجيل الدخول', icon: ShieldIcon },
+            { href: '/account/me', label: copy.links.accountPrivacy, icon: LockIcon },
+            { href: '/account/me', label: copy.links.activityStatus, icon: ActivityIcon },
+            { href: '/account/me', label: copy.links.accountManagement, icon: SettingsIcon },
+            { href: '/account', label: copy.links.loginSecurity, icon: ShieldIcon },
           ],
         },
         {
-          title: 'أدوات المحتوى',
+          title: copy.columns.tools,
           items: [
-            { href: '/interface?view=hashtags', label: 'الوسوم @ والذكر', icon: HashIcon },
-            { href: '/interface?view=video-settings', label: 'التحكم بالفيديوهات', icon: VideoIcon },
+            { href: '/interface?view=hashtags', label: copy.links.hashtags, icon: HashIcon },
+            { href: '/interface?view=video-settings', label: copy.links.videoControl, icon: VideoIcon },
           ],
         },
         {
-          title: 'المعلومات والدعم',
+          title: copy.columns.support,
           items: [
-            { href: '/privacy', label: 'سياسة الخصوصية', icon: ShieldIcon },
-            { href: '/terms', label: 'الشروط والأحكام', icon: DocumentIcon },
-            { href: '/agreements', label: 'الاتفاقيات', icon: DocumentIcon },
-            { href: '/security', label: 'أمان البيانات', icon: ShieldIcon },
-            { href: '/dmca', label: 'حقوق DMCA', icon: CopyrightIcon },
-            { href: '/contact', label: 'اتصل بنا', icon: MailIcon },
-            { href: '/faq', label: 'الأسئلة الشائعة', icon: HelpIcon },
-            { href: '/complaints', label: 'شكاوى وبلاغات', icon: AlertIcon },
-            { href: '/deletion', label: 'طلب حذف الحساب والبيانات', icon: DeleteIcon },
+            { href: '/privacy', label: copy.links.privacy, icon: ShieldIcon },
+            { href: '/terms', label: copy.links.terms, icon: DocumentIcon },
+            { href: '/agreements', label: copy.links.agreements, icon: DocumentIcon },
+            { href: '/security', label: copy.links.security, icon: ShieldIcon },
+            { href: '/dmca', label: copy.links.dmca, icon: CopyrightIcon },
+            { href: '/contact', label: copy.links.contact, icon: MailIcon },
+            { href: '/faq', label: copy.links.faq, icon: HelpIcon },
+            { href: '/complaints', label: copy.links.complaints, icon: AlertIcon },
+            { href: '/deletion', label: copy.links.deletion, icon: DeleteIcon },
           ],
         },
       ],
@@ -95,7 +209,7 @@ export default function Navbar() {
   }, [pathname]);
 
   return (
-    <nav className="fixed top-0 z-50 w-full border-b border-black/10 bg-white/95 shadow-sm backdrop-blur" dir="rtl" style={{ unicodeBidi: 'plaintext' }}>
+    <nav className="fixed top-0 z-50 w-full border-b border-black/10 bg-white/95 shadow-sm backdrop-blur" dir={direction} style={{ unicodeBidi: 'plaintext' }}>
       <div className="mx-auto h-16 max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-full items-center justify-between">
           <div className="flex items-center gap-2">
@@ -110,7 +224,7 @@ export default function Navbar() {
             <button
               onClick={() => setIsOpen((v) => !v)}
               className="inline-flex items-center justify-center rounded-xl border border-black/10 bg-white p-2 text-black hover:bg-black/[0.04] md:hidden"
-              aria-label={isOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
+              aria-label={isOpen ? copy.closeMenu : copy.openMenu}
               aria-expanded={isOpen}
               aria-controls="mobile-mega-menu"
             >
@@ -124,22 +238,36 @@ export default function Navbar() {
             </button>
           </div>
 
-          <Link href="/" className="text-2xl font-bold text-emerald-600">
-            دريدود
-          </Link>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={toggleLanguage}
+              className="inline-flex items-center gap-2 rounded-xl border border-black/10 bg-white px-3 py-2 text-sm font-bold text-black hover:bg-black/[0.04]"
+              aria-label={language === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'}
+            >
+              <LanguageIcon className="h-4 w-4" />
+              <span>{copy.switchLabel}</span>
+            </button>
+            <Link
+              href="/"
+              className="inline-flex items-center rounded-2xl bg-gradient-to-r from-red-700 via-rose-600 to-red-500 bg-clip-text px-1 text-2xl font-black tracking-wide text-transparent drop-shadow-sm"
+            >
+              {copy.brand}
+            </Link>
+          </div>
         </div>
       </div>
 
       {isOpen && (
-        <div id="mobile-mega-menu" className="border-t border-black/10 bg-white/95 px-4 pb-4 pt-3 md:hidden" dir="rtl" style={{ unicodeBidi: 'plaintext' }}>
+        <div id="mobile-mega-menu" className="border-t border-black/10 bg-white/95 px-4 pb-4 pt-3 md:hidden" dir={direction} style={{ unicodeBidi: 'plaintext' }}>
           <div className="rounded-2xl border border-black/10 bg-white p-3 shadow-lg">
             <div className="mb-3 flex items-center justify-between border-b border-black/10 pb-2">
-              <p className="text-sm font-extrabold text-gray-900 text-right [unicode-bidi:plaintext]">القائمة</p>
+              <p className={['text-sm font-extrabold text-gray-900 [unicode-bidi:plaintext]', isArabic ? 'text-right' : 'text-left'].join(' ')}>{copy.menu}</p>
               <button
                 onClick={() => setIsOpen(false)}
                 className="rounded-lg border border-black/10 px-2 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-100"
               >
-                إغلاق
+                {copy.close}
               </button>
             </div>
 
@@ -147,14 +275,14 @@ export default function Navbar() {
               <div className="grid grid-cols-1 xs:grid-cols-2 gap-2">
                 {mobileMegaColumns.map((column) => (
                   <section key={column.title} className="rounded-xl border border-gray-200 bg-gray-50/70 p-1.5 min-w-0">
-                    <h3 className="mb-1.5 rounded-lg bg-white px-2 py-1 text-[11px] font-extrabold text-gray-900 text-right [unicode-bidi:plaintext]">
+                    <h3 className={['mb-1.5 rounded-lg bg-white px-2 py-1 text-[11px] font-extrabold text-gray-900 [unicode-bidi:plaintext]', isArabic ? 'text-right' : 'text-left'].join(' ')}>
                       {column.title}
                     </h3>
 
                     <div className="space-y-1.5">
                       {column.sections.map((sec) => (
                         <div key={sec.title} className="rounded-lg border border-gray-200 bg-white p-1.5 min-w-0">
-                          <p className="mb-1 text-[10px] font-bold text-gray-700 text-right [unicode-bidi:plaintext]">{sec.title}</p>
+                          <p className={['mb-1 text-[10px] font-bold text-gray-700 [unicode-bidi:plaintext]', isArabic ? 'text-right' : 'text-left'].join(' ')}>{sec.title}</p>
                           <div className="space-y-1">
                             {sec.items.map((item) => (
                               <NavLinkMobile

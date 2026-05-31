@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { reportTypes } from './reportTypes';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 const MAX_EVIDENCE_SIZE = 5 * 1024 * 1024;
 const initialForm = {
@@ -13,6 +14,77 @@ const initialForm = {
 };
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const formCopy = {
+  ar: {
+    fullName: 'الاسم الكامل',
+    fullNamePlaceholder: 'مثال: أحمد محمد',
+    email: 'البريد الإلكتروني',
+    chooseType: 'اختر نوع البلاغ',
+    target: 'رابط المحتوى أو اسم المستخدم',
+    targetPlaceholder: 'https://dridoud.com/post/...',
+    description: 'وصف المشكلة',
+    descriptionPlaceholder: 'صف تفاصيل البلاغ والمشكلة بدقة',
+    evidence: 'إرفاق دليل (اختياري)',
+    attached: 'المرفق:',
+    submit: 'إرسال البلاغ',
+    submitting: 'جاري الإرسال...',
+    asideTitle: 'معلومات إضافية',
+    asideText: 'بعد الإرسال، سيقوم فريق دريدود بدراسة البلاغ خلال أيام العمل. يمكنك متابعة الحالة عبر البريد الإلكتروني.',
+    phone: 'رقم الهاتف:',
+    hint: 'تأكد من توضيح التفاصيل قدر الإمكان',
+    errors: {
+      emailRequired: 'البريد الإلكتروني مطلوب.',
+      emailInvalid: 'الرجاء إدخال بريد إلكتروني صالح.',
+      reportType: 'اختر نوع البلاغ.',
+      target: 'الرابط أو اسم المستخدم مطلوب.',
+      description: 'وصف المشكلة مطلوب.',
+      fileSize: 'تجاوز الملف الحد المسموح به (5 ميغابايت).',
+    },
+    status: {
+      fix: 'يجب تصحيح الحقول المطلوبة.',
+      pending: 'جاري إرسال البلاغ...',
+      review: 'هناك قيم بحاجة للتصحيح.',
+      error: 'فشل إرسال البلاغ.',
+      success: 'تم إرسال البلاغ وسيتم مراجعته.',
+      failed: 'تعذر إرسال البلاغ. حاول لاحقًا.',
+    },
+  },
+  en: {
+    fullName: 'Full Name',
+    fullNamePlaceholder: 'Example: John Smith',
+    email: 'Email Address',
+    chooseType: 'Choose Report Type',
+    target: 'Content Link or Username',
+    targetPlaceholder: 'https://dridoud.com/post/...',
+    description: 'Problem Description',
+    descriptionPlaceholder: 'Describe the report and issue clearly',
+    evidence: 'Attach Evidence (Optional)',
+    attached: 'Attached:',
+    submit: 'Submit Report',
+    submitting: 'Sending...',
+    asideTitle: 'Additional Information',
+    asideText: 'After submission, the Dridoud team will review your report during business days. You can follow the case by email.',
+    phone: 'Phone Number:',
+    hint: 'Make sure to include as many details as possible',
+    errors: {
+      emailRequired: 'Email address is required.',
+      emailInvalid: 'Please enter a valid email address.',
+      reportType: 'Choose a report type.',
+      target: 'Content link or username is required.',
+      description: 'Problem description is required.',
+      fileSize: 'The file exceeds the allowed limit (5 MB).',
+    },
+    status: {
+      fix: 'Please correct the required fields.',
+      pending: 'Sending the report...',
+      review: 'Some values need correction.',
+      error: 'Failed to send the report.',
+      success: 'The report was sent and will be reviewed.',
+      failed: 'Could not send the report. Try again later.',
+    },
+  },
+};
 
 function Icon({ name, className = 'h-5 w-5' }) {
   const baseProps = {
@@ -84,6 +156,9 @@ function Icon({ name, className = 'h-5 w-5' }) {
 
 
 export default function ComplaintsForm() {
+  const { language } = useLanguage();
+  const t = formCopy[language];
+  const localizedReportTypes = reportTypes[language];
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState({ type: 'idle', message: '' });
@@ -94,18 +169,18 @@ export default function ComplaintsForm() {
   const validate = () => {
     const validationErrors = {};
     if (!form.email.trim()) {
-      validationErrors.email = 'البريد الإلكتروني مطلوب.';
+      validationErrors.email = t.errors.emailRequired;
     } else if (!emailPattern.test(form.email)) {
-      validationErrors.email = 'الرجاء إدخال بريد إلكتروني صالح.';
+      validationErrors.email = t.errors.emailInvalid;
     }
     if (!form.reportType) {
-      validationErrors.reportType = 'اختر نوع البلاغ.';
+      validationErrors.reportType = t.errors.reportType;
     }
     if (!form.target.trim()) {
-      validationErrors.target = 'الرابط أو اسم المستخدم مطلوب.';
+      validationErrors.target = t.errors.target;
     }
     if (!form.description.trim()) {
-      validationErrors.description = 'وصف المشكلة مطلوب.';
+      validationErrors.description = t.errors.description;
     }
     return validationErrors;
   };
@@ -130,7 +205,7 @@ export default function ComplaintsForm() {
 
     if (file.size > MAX_EVIDENCE_SIZE) {
       setEvidence(null);
-      setEvidenceError('تجاوز الملف الحد المسموح به (5 ميغابايت).');
+      setEvidenceError(t.errors.fileSize);
       return;
     }
 
@@ -151,12 +226,12 @@ export default function ComplaintsForm() {
     const validationErrors = validate();
     if (Object.keys(validationErrors).length) {
       setErrors(validationErrors);
-      setStatus({ type: 'error', message: 'يجب تصحيح الحقول المطلوبة.' });
+      setStatus({ type: 'error', message: t.status.fix });
       return;
     }
 
     setIsSubmitting(true);
-    setStatus({ type: 'pending', message: 'جاري إرسال البلاغ...' });
+    setStatus({ type: 'pending', message: t.status.pending });
 
     try {
       const response = await fetch('/api/complaints', {
@@ -177,24 +252,24 @@ export default function ComplaintsForm() {
       if (!response.ok) {
         if (payload.errors) {
           setErrors(payload.errors);
-          setStatus({ type: 'error', message: 'هناك قيم بحاجة للتصحيح.' });
+          setStatus({ type: 'error', message: t.status.review });
         } else {
-          setStatus({ type: 'error', message: payload.message || 'فشل إرسال البلاغ.' });
+          setStatus({ type: 'error', message: payload.message || t.status.error });
         }
         return;
       }
 
-      setStatus({ type: 'success', message: 'تم إرسال البلاغ وسيتم مراجعته.' });
+      setStatus({ type: 'success', message: t.status.success });
       setForm(initialForm);
       setEvidence(null);
     } catch (error) {
-      setStatus({ type: 'error', message: 'تعذر إرسال البلاغ. حاول لاحقًا.' });
+      setStatus({ type: 'error', message: t.status.failed });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const selectedType = reportTypes.find((type) => type.value === form.reportType);
+  const selectedType = localizedReportTypes.find((type) => type.value === form.reportType);
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1.1fr,0.9fr]">
@@ -217,18 +292,18 @@ export default function ComplaintsForm() {
 
           <div className="grid gap-5 md:grid-cols-2">
             <label className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-              <span>الاسم الكامل</span>
+              <span>{t.fullName}</span>
               <input
                 type="text"
                 value={form.name}
                 onChange={handleChange('name')}
-                placeholder="مثال: أحمد محمد"
+                placeholder={t.fullNamePlaceholder}
                 className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-red-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
               />
             </label>
 
             <label className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-              <span>البريد الإلكتروني *</span>
+              <span>{t.email} *</span>
               <input
                 type="email"
                 value={form.email}
@@ -249,9 +324,9 @@ export default function ComplaintsForm() {
           </div>
 
           <div className="space-y-2">
-            <p className="text-sm font-semibold text-gray-900 dark:text-white">اختر نوع البلاغ *</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">{t.chooseType} *</p>
             <div className="grid gap-3 md:grid-cols-3">
-              {reportTypes.map((type) => {
+              {localizedReportTypes.map((type) => {
                 const isActive = form.reportType === type.value;
                 return (
                   <button
@@ -277,12 +352,12 @@ export default function ComplaintsForm() {
           </div>
 
           <label className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-            <span>رابط المحتوى أو اسم المستخدم *</span>
+            <span>{t.target} *</span>
             <input
               type="text"
               value={form.target}
               onChange={handleChange('target')}
-              placeholder="https://dridoud.com/post/..."
+              placeholder={t.targetPlaceholder}
               className={`w-full rounded-2xl border px-4 py-3 text-sm outline-none transition focus:border-red-500 dark:bg-gray-900 dark:border-gray-800 ${
                 errors.target ? 'border-red-400' : 'border-gray-200'
               }`}
@@ -297,12 +372,12 @@ export default function ComplaintsForm() {
           </label>
 
           <label className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-            <span>وصف المشكلة *</span>
+            <span>{t.description} *</span>
             <textarea
               rows={5}
               value={form.description}
               onChange={handleChange('description')}
-              placeholder="صف تفاصيل البلاغ والمشكلة بدقة"
+              placeholder={t.descriptionPlaceholder}
               className={`w-full rounded-2xl border px-4 py-3 text-sm outline-none transition focus:border-red-500 dark:bg-gray-900 dark:border-gray-800 ${
                 errors.description ? 'border-red-400' : 'border-gray-200'
               }`}
@@ -317,14 +392,14 @@ export default function ComplaintsForm() {
           </label>
 
           <label className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-            <span>إرفاق دليل (اختياري)</span>
+            <span>{t.evidence}</span>
             <input
               type="file"
               accept="image/*,application/pdf"
               onChange={handleEvidence}
               className="text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:bg-red-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-red-600 dark:file:bg-red-900/40 dark:file:text-red-200"
             />
-            {evidence?.name && <p className="text-xs text-gray-500">المرفق: {evidence.name}</p>}
+            {evidence?.name && <p className="text-xs text-gray-500">{t.attached} {evidence.name}</p>}
             {evidenceError && <p className="text-xs text-red-500">{evidenceError}</p>}
           </label>
 
@@ -333,7 +408,7 @@ export default function ComplaintsForm() {
             disabled={isSubmitting}
             className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-red-500 to-rose-500 px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
           >
-            {isSubmitting ? 'جاري الإرسال...' : 'إرسال البلاغ'}
+            {isSubmitting ? t.submitting : t.submit}
           </button>
         </div>
       </form>
@@ -342,10 +417,10 @@ export default function ComplaintsForm() {
         <div>
           <h2 className="flex items-center gap-2 text-2xl font-semibold text-gray-900 dark:text-white">
             <Icon name={selectedType?.icon ?? 'sparkles'} className="h-6 w-6 text-red-600" />
-            معلومات إضافية
+            {t.asideTitle}
           </h2>
           <p className="text-sm text-gray-600 dark:text-gray-300 mt-3">
-            بعد الإرسال، سيقوم فريق دريدود بدراسة البلاغ خلال أيام العمل. يمكنك متابعة الحالة عبر البريد الإلكتروني.
+            {t.asideText}
           </p>
         </div>
         <div className="space-y-3 text-sm">
@@ -357,10 +432,10 @@ export default function ComplaintsForm() {
           </p>
           <p className="flex items-center gap-2">
             <Icon name="shield" className="h-5 w-5 text-red-600" />
-            رقم الهاتف: <span className="font-semibold text-red-600">+212638813823</span>
+            {t.phone} <span className="font-semibold text-red-600">+212638813823</span>
           </p>
         </div>
-        <p className="text-xs uppercase tracking-[0.4em] text-red-600">تأكد من توضيح التفاصيل قدر الإمكان</p>
+        <p className="text-xs uppercase tracking-[0.4em] text-red-600">{t.hint}</p>
       </aside>
     </div>
   );

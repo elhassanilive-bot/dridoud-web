@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { useState } from 'react';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 const initialForm = {
   fullName: '',
@@ -10,6 +11,65 @@ const initialForm = {
 };
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const contactCopy = {
+  ar: {
+    fullName: 'الاسم الكامل',
+    fullNamePlaceholder: 'اسمك الكامل',
+    email: 'البريد الإلكتروني',
+    subject: 'الموضوع',
+    subjectPlaceholder: 'مثال: مشكلة في الحساب',
+    message: 'نص الرسالة',
+    messagePlaceholder: 'ما الذي يمكننا مساعدتك به؟',
+    submit: 'إرسال',
+    sending: 'جاري الإرسال...',
+    sideTitle: 'أمان وتواصل مباشر',
+    sideText: 'يوفر النموذج اتصالاً آمناً مباشرة إلى فريق دريدود. يتم التحقق من البريد والحقول المطلوبة قبل إرسال الرسالة.',
+    phone: 'رقم الهاتف',
+    errors: {
+      fullName: 'الاسم الكامل مطلوب.',
+      email: 'البريد الإلكتروني مطلوب.',
+      emailInvalid: 'الرجاء إدخال بريد إلكتروني صالح.',
+      message: 'نص الرسالة مطلوب.',
+    },
+    status: {
+      fixFields: 'يرجى تصحيح الحقول قبل الإرسال.',
+      pending: 'يتم إرسال الرسالة...',
+      reviewFields: 'الرجاء مراجعة الحقول المشار إليها.',
+      error: 'حدث خطأ أثناء الإرسال.',
+      success: 'تم إرسال رسالتك بنجاح.',
+      failed: 'تعذر إرسال الرسالة. حاول لاحقاً.',
+    },
+  },
+  en: {
+    fullName: 'Full Name',
+    fullNamePlaceholder: 'Your full name',
+    email: 'Email Address',
+    subject: 'Subject',
+    subjectPlaceholder: 'Example: Account issue',
+    message: 'Message',
+    messagePlaceholder: 'How can we help you?',
+    submit: 'Send',
+    sending: 'Sending...',
+    sideTitle: 'Secure direct contact',
+    sideText: 'The form provides a secure direct connection to the Dridoud team. Email and required fields are checked before sending.',
+    phone: 'Phone Number',
+    errors: {
+      fullName: 'Full name is required.',
+      email: 'Email address is required.',
+      emailInvalid: 'Please enter a valid email address.',
+      message: 'Message text is required.',
+    },
+    status: {
+      fixFields: 'Please correct the fields before sending.',
+      pending: 'Sending your message...',
+      reviewFields: 'Please review the highlighted fields.',
+      error: 'An error occurred while sending.',
+      success: 'Your message was sent successfully.',
+      failed: 'Could not send the message. Try again later.',
+    },
+  },
+};
 
 function Icon({ name, className = 'h-5 w-5' }) {
   const shared = {
@@ -48,6 +108,8 @@ function Icon({ name, className = 'h-5 w-5' }) {
 }
 
 export default function ContactForm() {
+  const { language } = useLanguage();
+  const t = contactCopy[language];
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState({ type: 'idle', message: '' });
@@ -56,15 +118,15 @@ export default function ContactForm() {
   const validate = () => {
     const validationErrors = {};
     if (!form.fullName.trim()) {
-      validationErrors.fullName = 'الاسم الكامل مطلوب.';
+      validationErrors.fullName = t.errors.fullName;
     }
     if (!form.email.trim()) {
-      validationErrors.email = 'البريد الإلكتروني مطلوب.';
+      validationErrors.email = t.errors.email;
     } else if (!emailPattern.test(form.email)) {
-      validationErrors.email = 'الرجاء إدخال بريد إلكتروني صالح.';
+      validationErrors.email = t.errors.emailInvalid;
     }
     if (!form.message.trim()) {
-      validationErrors.message = 'نص الرسالة مطلوب.';
+      validationErrors.message = t.errors.message;
     }
     return validationErrors;
   };
@@ -79,12 +141,12 @@ export default function ContactForm() {
     const validationErrors = validate();
     if (Object.keys(validationErrors).length) {
       setErrors(validationErrors);
-      setStatus({ type: 'error', message: 'يرجى تصحيح الحقول قبل الإرسال.' });
+      setStatus({ type: 'error', message: t.status.fixFields });
       return;
     }
 
     setIsSubmitting(true);
-    setStatus({ type: 'pending', message: 'يتم إرسال الرسالة...' });
+    setStatus({ type: 'pending', message: t.status.pending });
 
     try {
       const response = await fetch('/api/contact', {
@@ -103,17 +165,17 @@ export default function ContactForm() {
       if (!response.ok) {
         if (payload.errors) {
           setErrors(payload.errors);
-          setStatus({ type: 'error', message: 'الرجاء مراجعة الحقول المشار إليها.' });
+          setStatus({ type: 'error', message: t.status.reviewFields });
         } else {
-          setStatus({ type: 'error', message: payload.message || 'حدث خطأ أثناء الإرسال.' });
+          setStatus({ type: 'error', message: payload.message || t.status.error });
         }
         return;
       }
 
-      setStatus({ type: 'success', message: 'تم إرسال رسالتك بنجاح.' });
+      setStatus({ type: 'success', message: t.status.success });
       setForm(initialForm);
     } catch (error) {
-      setStatus({ type: 'error', message: 'تعذر إرسال الرسالة. حاول لاحقاً.' });
+      setStatus({ type: 'error', message: t.status.failed });
     } finally {
       setIsSubmitting(false);
     }
@@ -140,12 +202,12 @@ export default function ContactForm() {
 
           <div className="grid gap-5 md:grid-cols-2">
             <label className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-              <span>الاسم الكامل *</span>
+              <span>{t.fullName} *</span>
               <input
                 type="text"
                 value={form.fullName}
                 onChange={handleChange('fullName')}
-                placeholder="اسمك الكامل"
+                placeholder={t.fullNamePlaceholder}
                 className={`w-full rounded-2xl border px-4 py-3 text-sm outline-none transition-shadow focus:shadow-[0_0_0_3px_rgba(239,68,68,0.2)] dark:bg-gray-900 dark:border-gray-800 ${
                   errors.fullName ? 'border-red-400' : 'border-gray-200'
                 }`}
@@ -160,7 +222,7 @@ export default function ContactForm() {
             </label>
 
             <label className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-              <span>البريد الإلكتروني *</span>
+              <span>{t.email} *</span>
               <input
                 type="email"
                 value={form.email}
@@ -181,23 +243,23 @@ export default function ContactForm() {
           </div>
 
           <label className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-            <span>الموضوع</span>
+            <span>{t.subject}</span>
             <input
               type="text"
               value={form.subject}
               onChange={handleChange('subject')}
-              placeholder="مثال: مشكلة في الحساب"
+              placeholder={t.subjectPlaceholder}
               className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none transition-shadow focus:shadow-[0_0_0_3px_rgba(239,68,68,0.2)] dark:bg-gray-900 dark:border-gray-800"
             />
           </label>
 
           <label className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-            <span>نص الرسالة *</span>
+            <span>{t.message} *</span>
             <textarea
               value={form.message}
               onChange={handleChange('message')}
               rows={5}
-              placeholder="ما الذي يمكننا مساعدتك به؟"
+              placeholder={t.messagePlaceholder}
               className={`w-full rounded-2xl border px-4 py-3 text-sm outline-none transition-shadow focus:shadow-[0_0_0_3px_rgba(239,68,68,0.2)] dark:bg-gray-900 dark:border-gray-800 ${
                 errors.message ? 'border-red-400' : 'border-gray-200'
               }`}
@@ -216,7 +278,7 @@ export default function ContactForm() {
             disabled={isSubmitting}
             className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-red-500 to-rose-500 px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
           >
-            {isSubmitting ? 'جاري الإرسال...' : 'إرسال'}
+            {isSubmitting ? t.sending : t.submit}
           </button>
         </form>
       </div>
@@ -225,17 +287,17 @@ export default function ContactForm() {
         <div className="space-y-5 text-gray-800 dark:text-gray-100">
           <h2 className="flex items-center gap-2 text-2xl font-semibold">
             <Icon name="shield" className="h-6 w-6 text-red-600" />
-            أمان وتواصل مباشر
+            {t.sideTitle}
           </h2>
           <p className="text-sm text-gray-600 dark:text-gray-300">
-            يوفر النموذج اتصالاً آمناً مباشرة إلى فريق دريدود. يتم التحقق من البريد والحقول المطلوبة قبل إرسال الرسالة.
+            {t.sideText}
           </p>
         </div>
         <div className="mt-8 space-y-4 text-gray-700 dark:text-gray-300">
           <div className="flex items-center gap-3 rounded-2xl bg-white/80 px-4 py-3 shadow-sm dark:bg-white/5">
             <Icon name="mail" className="h-5 w-5 text-red-600" />
             <div>
-              <p className="text-sm font-semibold">البريد الإلكتروني</p>
+              <p className="text-sm font-semibold">{t.email}</p>
               <a className="text-sm text-red-600 hover:underline" href="mailto:support@dridoud.com">
                 support@dridoud.com
               </a>
@@ -244,7 +306,7 @@ export default function ContactForm() {
           <div className="flex items-center gap-3 rounded-2xl bg-white/80 px-4 py-3 shadow-sm dark:bg-white/5">
             <Icon name="phone" className="h-5 w-5 text-red-600" />
             <div>
-              <p className="text-sm font-semibold">رقم الهاتف</p>
+              <p className="text-sm font-semibold">{t.phone}</p>
               <a className="text-sm text-red-600 hover:underline" href="tel:+212638813823">
                 +212638813823
               </a>

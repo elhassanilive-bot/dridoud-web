@@ -2,25 +2,81 @@
 
 import Link from 'next/link';
 import { site } from '@/config/site';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
+
+const footerCopy = {
+  ar: {
+    brand: 'دريدود',
+    description:
+      'دريدود هو تطبيق تواصل اجتماعي من الجيل الجديد. يتميز بعدة مزايا مثل القنوات والمجموعات والقصص والفيديوهات واستطلاعات الرأي والعديد من المزايا التي تجعله مميزًا من بين تطبيقات التواصل الأخرى.',
+    contact: 'تواصل معنا عبر:',
+    quickLinks: 'روابط سريعة',
+    policies: 'سياسات وقوانين',
+    support: 'مساعدة ودعم',
+    follow: 'تابعنا',
+    rights: 'جميع الحقوق محفوظة.',
+    links: {
+      home: 'الرئيسية',
+      features: 'الميزات',
+      about: 'من نحن',
+      download: 'تحميل',
+      privacy: 'سياسة الخصوصية',
+      terms: 'الشروط والأحكام',
+      agreements: 'الاتفاقيات والسياسات',
+      dmca: 'حقوق النشر (DMCA)',
+      security: 'أمان البيانات',
+      contact: 'اتصل بنا',
+      faq: 'الأسئلة الشائعة',
+      complaints: 'شكاوى وبلاغات',
+      deletion: 'طلب حذف الحساب',
+    },
+  },
+  en: {
+    brand: 'Dridoud',
+    description:
+      'Dridoud is a new-generation social networking app with channels, groups, stories, videos, polls, and flexible publishing tools designed for expressive communities.',
+    contact: 'Contact us at:',
+    quickLinks: 'Quick Links',
+    policies: 'Policies',
+    support: 'Help and Support',
+    follow: 'Follow Us',
+    rights: 'All rights reserved.',
+    links: {
+      home: 'Home',
+      features: 'Features',
+      about: 'About',
+      download: 'Download',
+      privacy: 'Privacy Policy',
+      terms: 'Terms',
+      agreements: 'Agreements and Policies',
+      dmca: 'Copyright (DMCA)',
+      security: 'Data Security',
+      contact: 'Contact Us',
+      faq: 'FAQ',
+      complaints: 'Complaints',
+      deletion: 'Delete Account Request',
+    },
+  },
+};
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const socials = site.socials;
   const hasSocials = Boolean(socials.x || socials.instagram || socials.youtube);
+  const { language, direction } = useLanguage();
+  const copy = footerCopy[language];
 
   return (
-    <footer className="bg-red-900 text-white py-12">
+    <footer className="bg-red-900 text-white py-12" dir={direction}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div>
-            <h3 className="text-2xl font-bold text-red-100 mb-4">دريدود</h3>
+            <h3 className="text-2xl font-bold text-red-100 mb-4">{copy.brand}</h3>
             <p className="text-red-100/80 leading-relaxed">
-              دريدود هو تطبيق تواصل اجتماعي من الجيل الجديد. يتميز بعدة مزايا مثل القنوات والمجموعات
-              والقصص والفيديوهات واستطلاعات الرأي والعديد من المزايا التي تجعله مميزًا من بين
-              تطبيقات التواصل الأخرى.
+              {copy.description}
             </p>
             <p className="text-red-100/75 mt-4 text-sm">
-              تواصل معنا عبر:{' '}
+              {copy.contact}{' '}
               <a className="text-white hover:text-red-200" href={`mailto:${site.supportEmail}`}>
                 {site.supportEmail}
               </a>
@@ -28,83 +84,83 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="text-lg font-semibold mb-4">روابط سريعة</h4>
+            <h4 className="text-lg font-semibold mb-4">{copy.quickLinks}</h4>
             <ul className="space-y-2">
               <li>
                 <Link href="/" className="text-red-100/75 hover:text-white transition-colors">
-                  الرئيسية
+                  {copy.links.home}
                 </Link>
               </li>
               <li>
                 <Link href="/features" className="text-red-100/75 hover:text-white transition-colors">
-                  الميزات
+                  {copy.links.features}
                 </Link>
               </li>
               <li>
                 <Link href="/about" className="text-red-100/75 hover:text-white transition-colors">
-                  من نحن
+                  {copy.links.about}
                 </Link>
               </li>
               <li>
                 <Link href="/download" className="text-red-100/75 hover:text-white transition-colors">
-                  تحميل
+                  {copy.links.download}
                 </Link>
               </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-lg font-semibold mb-4">سياسات وقوانين</h4>
+            <h4 className="text-lg font-semibold mb-4">{copy.policies}</h4>
             <ul className="space-y-2">
               <li>
                 <Link href="/privacy" className="text-red-100/75 hover:text-white transition-colors">
-                  سياسة الخصوصية
+                  {copy.links.privacy}
                 </Link>
               </li>
               <li>
                 <Link href="/terms" className="text-red-100/75 hover:text-white transition-colors">
-                  الشروط والأحكام
+                  {copy.links.terms}
                 </Link>
               </li>
               <li>
                 <Link href="/agreements" className="text-red-100/75 hover:text-white transition-colors">
-                  الاتفاقيات والسياسات
+                  {copy.links.agreements}
                 </Link>
               </li>
               <li>
                 <Link href="/dmca" className="text-red-100/75 hover:text-white transition-colors">
-                  حقوق النشر (DMCA)
+                  {copy.links.dmca}
                 </Link>
               </li>
               <li>
                 <Link href="/security" className="text-red-100/75 hover:text-white transition-colors">
-                  أمان البيانات
+                  {copy.links.security}
                 </Link>
               </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-lg font-semibold mb-4">مساعدة ودعم</h4>
+            <h4 className="text-lg font-semibold mb-4">{copy.support}</h4>
             <ul className="space-y-2">
               <li>
                 <Link href="/contact" className="text-red-100/75 hover:text-white transition-colors">
-                  اتصل بنا
+                  {copy.links.contact}
                 </Link>
               </li>
               <li>
                 <Link href="/faq" className="text-red-100/75 hover:text-white transition-colors">
-                  الأسئلة الشائعة
+                  {copy.links.faq}
                 </Link>
               </li>
               <li>
                 <Link href="/complaints" className="text-red-100/75 hover:text-white transition-colors">
-                  شكاوى وبلاغات
+                  {copy.links.complaints}
                 </Link>
               </li>
               <li>
                 <Link href="/deletion" className="text-red-100/75 hover:text-white transition-colors">
-                  طلب حذف الحساب
+                  {copy.links.deletion}
                 </Link>
               </li>
             </ul>
@@ -113,7 +169,7 @@ export default function Footer() {
 
         {hasSocials && (
           <div className="mb-8">
-            <h4 className="text-lg font-semibold mb-3">تابعنا</h4>
+            <h4 className="text-lg font-semibold mb-3">{copy.follow}</h4>
             <div className="flex items-center gap-4 text-red-100/75">
               {socials.x && (
                 <a
@@ -159,7 +215,7 @@ export default function Footer() {
         )}
 
         <div className="border-t border-red-300/20 pt-8">
-          <p className="text-red-100/75 text-center">&copy; {currentYear} دريدود. جميع الحقوق محفوظة.</p>
+          <p className="text-red-100/75 text-center">&copy; {currentYear} {copy.brand}. {copy.rights}</p>
         </div>
       </div>
     </footer>
