@@ -149,10 +149,11 @@ export default function ContactForm() {
     setStatus({ type: 'pending', message: t.status.pending });
 
     try {
-      const response = await fetch('/api/contact', {
+      const response = await fetch('/api/support', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          type: 'contact',
           fullName: form.fullName.trim(),
           email: form.email.trim(),
           subject: form.subject.trim(),
@@ -276,7 +277,7 @@ export default function ContactForm() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-red-500 to-rose-500 px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
+            className="sticky bottom-4 z-10 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-red-600 to-rose-600 px-6 py-4 text-base font-black text-white shadow-2xl shadow-red-500/30 transition hover:opacity-90 disabled:opacity-60"
           >
             {isSubmitting ? t.sending : t.submit}
           </button>
@@ -317,4 +318,5 @@ export default function ContactForm() {
     </section>
   );
 }
+
 

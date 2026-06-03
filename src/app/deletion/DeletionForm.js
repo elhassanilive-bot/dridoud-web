@@ -65,16 +65,20 @@ export default function DeletionForm() {
     setStatus({ type: 'pending', message: 'يتم إرسال طلب الحذف...' });
 
     try {
-      const response = await fetch('/api/deletion', {
+      const response = await fetch('/api/support', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          type: 'delete_account',
+          fullName: form.username.trim(),
           email: form.email.trim(),
-          username: form.username.trim(),
-          reason: form.reason,
-          otherReason: form.otherReason.trim(),
-          message: form.message.trim(),
-          password: form.password.trim(),
+          subject: 'طلب حذف الحساب',
+          message: [
+            `اسم المستخدم: ${form.username.trim()}`,
+            `سبب الحذف: ${selectedReason?.label ?? form.reason}`,
+            form.otherReason.trim() ? `سبب آخر: ${form.otherReason.trim()}` : '',
+            form.message.trim() ? `رسالة إضافية: ${form.message.trim()}` : '',
+          ].filter(Boolean).join('\n'),
         }),
       });
 
@@ -213,7 +217,7 @@ export default function DeletionForm() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-red-500 to-rose-500 px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
+          className="sticky bottom-4 z-10 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-red-600 to-rose-600 px-6 py-4 text-base font-black text-white shadow-2xl shadow-red-500/30 transition hover:opacity-90 disabled:opacity-60"
         >
           {isSubmitting ? 'جاري الإرسال...' : 'إرسال طلب الحذف'}
         </button>
@@ -248,3 +252,5 @@ export default function DeletionForm() {
     </div>
   );
 }
+
+
