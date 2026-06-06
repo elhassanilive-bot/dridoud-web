@@ -17,6 +17,10 @@ function normalizeUsername(v = '') {
   return String(v).trim().replace(/^@+/, '');
 }
 
+function normalizeHandle(raw = '') {
+  return String(raw).replace(/^@+/, '').replace(/[^\w\u0600-\u06FF.]/g, '').trim();
+}
+
 function formatAgo(dateStr) {
   if (!dateStr) return 'الآن';
   const d = new Date(dateStr);
@@ -163,6 +167,13 @@ function plainTextArticleBlocks(text) {
 }
 
 function buildArticleBlocks(post) {
+  const storedBlocks = Array.isArray(post?.content_blocks)
+    ? post.content_blocks
+    : safeJsonParse(post?.content_blocks);
+  if (Array.isArray(storedBlocks) && storedBlocks.length) {
+    return extractJsonArticleBlocks(storedBlocks, []);
+  }
+
   const mediaQueue = (post?.post_media || [])
     .slice()
     .sort((a, b) => (a?.order_index ?? 0) - (b?.order_index ?? 0))
@@ -177,6 +188,58 @@ function buildArticleBlocks(post) {
   if (!blocks.length && rawText) blocks.push(...plainTextArticleBlocks(rawText));
   blocks.push(...mediaQueue);
   return blocks;
+}
+
+function normalizeExternalUrl(raw = '') {
+  const value = String(raw || '').trim();
+  if (!value) return '';
+  if (/^https?:\/\//i.test(value)) return value;
+  if (/^www\./i.test(value)) return `https://${value}`;
+  return value;
+}
+
+function tokenizeRichText(text = '') {
+  const source = String(text || '');
+  const tokens = [];
+  const richPattern = /\[([^\]]+)\]\(([^)\s]+)\)|(https?:\/\/[^\s،,.!?:;"')\]]+|www\.[^\s،,.!?:;"')\]]+|[a-z0-9.-]+\.[a-z]{2,}(?:\/[^\s،,.!?:;"')\]]*)?)|(@[\w\u0600-\u06FF.]+)|(#[\w\u0600-\u06FF]+)/giu;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = richPattern.exec(source)) !== null) {
+    if (match.index > lastIndex) {
+      tokens.push({ type: 'text', value: source.slice(lastIndex, match.index) });
+    }
+
+    if (match[1] && match[2]) {
+      tokens.push({
+        type: 'url',
+        value: match[1],
+        href: normalizeExternalUrl(match[2]),
+        suffix: '',
+      });
+    } else if (match[3]) {
+      tokens.push({
+        type: 'url',
+        value: match[3],
+        href: normalizeExternalUrl(match[3]),
+        suffix: '',
+      });
+    } else if (match[4]) {
+      const handle = normalizeHandle(match[4]);
+      tokens.push(handle ? { type: 'mention', value: match[4], handle, suffix: '' } : { type: 'text', value: match[4] });
+    } else if (match[5]) {
+      const tag = match[5].replace(/^#+/, '').replace(/[^\w\u0600-\u06FF]/g, '').trim();
+      tokens.push(tag ? { type: 'hashtag', value: match[5], tag, suffix: '' } : { type: 'text', value: match[5] });
+    }
+
+    lastIndex = richPattern.lastIndex;
+  }
+
+  if (lastIndex < source.length) {
+    tokens.push({ type: 'text', value: source.slice(lastIndex) });
+  }
+
+  return tokens;
 }
 
 async function findProfile(client, rawUsername) {
@@ -271,7 +334,7 @@ export default function PublicProfilePage() {
           getCount(client, 'posts', [['user_id', uid]], ['channel_id', 'group_id']),
           client
             .from('posts')
-            .select('id,user_id,content,description,created_at,background_style,is_sensitive,media_type,privacy,post_media(media_url,thumbnail_url,media_type,order_index)')
+            .select('id,user_id,content,description,content_blocks,created_at,background_style,is_sensitive,media_type,privacy,post_media(media_url,thumbnail_url,media_type,order_index)')
             .eq('user_id', uid)
             .neq('privacy', 'private')
             .is('channel_id', null)
@@ -1044,7 +1107,7 @@ function ProfilePostCard({
 }
 
 function ArticleContentPreview({ blocks = [], expanded = false, onToggleExpanded, postId }) {
-  const visibleLimit = 4;
+  const visibleLimit = 3;
   const hasLongParagraph = blocks.some((block) => String(block?.text || '').length > 260);
   const shouldClip = blocks.length > visibleLimit || hasLongParagraph;
   const visibleBlocks = shouldClip && !expanded ? blocks.slice(0, visibleLimit) : blocks;
@@ -1073,15 +1136,15 @@ function ArticleBlock({ block, postId, compact = false }) {
     return <div className="mx-auto h-px w-2/3 bg-gradient-to-l from-transparent via-slate-300 to-transparent" />;
   }
   if (block?.type === 'heading') {
-    return <h2 className="text-2xl font-black leading-[1.55] text-slate-950">{text}</h2>;
+    return <RichArticleText as="h2" text={text} className="text-2xl font-black leading-[1.55] text-slate-950" />;
   }
   if (block?.type === 'subheading') {
-    return <h3 className="text-xl font-extrabold leading-[1.6] text-slate-900">{text}</h3>;
+    return <RichArticleText as="h3" text={text} className="text-xl font-extrabold leading-[1.6] text-slate-900" />;
   }
   if (block?.type === 'quote') {
     return (
       <blockquote className="rounded-2xl border-r-4 border-rose-600 bg-rose-50 px-4 py-3 text-base font-bold leading-8 text-rose-950">
-        {text}
+        <RichArticleText as="span" text={text} />
       </blockquote>
     );
   }
@@ -1103,7 +1166,64 @@ function ArticleBlock({ block, postId, compact = false }) {
   }
   if (!text) return null;
   const shown = compact && text.length > 260 ? `${text.slice(0, 260).trim()}...` : text;
-  return <p className="whitespace-pre-wrap text-base font-semibold leading-8 text-slate-800">{shown}</p>;
+  return <RichArticleText as="p" text={shown} className="whitespace-pre-wrap text-base font-semibold leading-8 text-slate-800" />;
+}
+
+function RichArticleText({ text = '', as: Tag = 'span', className = '' }) {
+  const tokens = tokenizeRichText(text);
+  return (
+    <Tag className={className} dir="rtl">
+      {tokens.map((token, index) => {
+        if (token.type === 'space') return <span key={`s-${index}`}>{token.value}</span>;
+        if (token.type === 'url') {
+          return (
+            <span key={`u-${index}`}>
+              <a
+                href={token.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(event) => event.stopPropagation()}
+                className="font-black text-blue-700 underline decoration-blue-400 underline-offset-2 transition hover:text-blue-900"
+                dir="ltr"
+              >
+                {token.value}
+              </a>
+              {token.suffix ? <span>{token.suffix}</span> : null}
+            </span>
+          );
+        }
+        if (token.type === 'mention') {
+          return (
+            <span key={`m-${index}`}>
+              <Link
+                href={`/${token.handle}`}
+                onClick={(event) => event.stopPropagation()}
+                className="font-black text-blue-700 underline decoration-blue-400 underline-offset-2 transition hover:text-blue-900"
+              >
+                {token.value}
+              </Link>
+              {token.suffix ? <span>{token.suffix}</span> : null}
+            </span>
+          );
+        }
+        if (token.type === 'hashtag') {
+          return (
+            <span key={`h-${index}`}>
+              <Link
+                href={`/interface?tag=${encodeURIComponent(token.tag)}`}
+                onClick={(event) => event.stopPropagation()}
+                className="font-black text-blue-700 underline decoration-blue-400 underline-offset-2 transition hover:text-blue-900"
+              >
+                {token.value}
+              </Link>
+              {token.suffix ? <span>{token.suffix}</span> : null}
+            </span>
+          );
+        }
+        return <span key={`t-${index}`}>{token.value}</span>;
+      })}
+    </Tag>
+  );
 }
 function VerifiedBadge() {
   return (

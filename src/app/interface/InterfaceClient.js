@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { getSupabaseClient } from '@/lib/supabase/client';
 
 const SECTION_LABELS = [
@@ -46,11 +46,208 @@ function mediaFromPost(post) {
     return pm.map((m) => ({
       url: m.thumbnail_url || m.media_url,
       full: m.media_url || m.thumbnail_url,
+      caption: m.caption || m.image_caption || '',
       type: (m.media_type || '').toLowerCase().includes('video') ? 'video' : 'image',
     }));
   }
 
   return [];
+}
+
+function extractMemberCount(raw) {
+  if (typeof raw === 'number') return raw;
+  if (Array.isArray(raw)) {
+    const first = raw[0];
+    if (typeof first?.count === 'number') return first.count;
+    return raw.length;
+  }
+  if (typeof raw?.count === 'number') return raw.count;
+  return 0;
+}
+
+function groupCategoryLabel(value) {
+  const labels = {
+    technology: 'تقنية',
+    programming: 'برمجة',
+    sports: 'رياضة',
+    medicine: 'طب',
+    education: 'تعليم',
+    business: 'أعمال',
+    entertainment: 'ترفيه',
+    other: 'أخرى',
+  };
+  return labels[String(value || '').toLowerCase()] || 'مجموعة عامة';
+}
+
+function safeJsonParse(value) {
+  if (!value || typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed || (!trimmed.startsWith('{') && !trimmed.startsWith('['))) return null;
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return null;
+  }
+}
+
+function normalizeArticleType(value = '') {
+  const raw = String(value || '').toLowerCase().replace(/[_\s-]+/g, '');
+  if (['h1', 'heading', 'title', 'mainheading', 'mainheader'].includes(raw)) return 'heading';
+  if (['h2', 'subheading', 'subtitle', 'subheader'].includes(raw)) return 'subheading';
+  if (['quote', 'blockquote'].includes(raw)) return 'quote';
+  if (['divider', 'separator', 'line', 'hr'].includes(raw)) return 'divider';
+  if (['image', 'articleimage', 'photo'].includes(raw)) return 'image';
+  if (['video', 'articlevideo'].includes(raw)) return 'video';
+  return 'paragraph';
+}
+
+function textFromArticleBlock(block = {}) {
+  return String(
+    block.text ??
+      block.content ??
+      block.title ??
+      block.value ??
+      block.body ??
+      block.caption ??
+      ''
+  ).trim();
+}
+
+function extractJsonArticleBlocks(payload, mediaQueue = []) {
+  const source = Array.isArray(payload)
+    ? payload
+    : payload?.blocks || payload?.articleBlocks || payload?.contentBlocks || payload?.elements || payload?.items || [];
+  if (!Array.isArray(source)) return [];
+
+  return source
+    .map((block) => {
+      if (typeof block === 'string') {
+        const text = block.trim();
+        return text ? { type: 'paragraph', text } : null;
+      }
+      const type = normalizeArticleType(block?.type || block?.kind || block?.block_type || block?.blockType);
+      const text = textFromArticleBlock(block);
+      if (type === 'divider') return { type };
+      if (type === 'image' || type === 'video') {
+        const queued = mediaQueue.shift();
+        const url =
+          block?.url ||
+          block?.media_url ||
+          block?.mediaUrl ||
+          block?.image_url ||
+          block?.imageUrl ||
+          block?.video_url ||
+          block?.videoUrl ||
+          queued?.full ||
+          queued?.url;
+        if (!url) return text ? { type: 'paragraph', text } : null;
+        return {
+          type,
+          url,
+          thumbnail: block?.thumbnail_url || block?.thumbnailUrl || queued?.url || url,
+          caption: block?.caption || block?.image_caption || block?.imageCaption || queued?.caption || '',
+          numbered: block?.numbered === true,
+        };
+      }
+      return text ? { type, text, numbered: block?.numbered === true } : null;
+    })
+    .filter(Boolean);
+}
+
+function extractTokenArticleBlocks(text, mediaQueue = []) {
+  const source = String(text || '');
+  const rx = /\[\[media:(image|video):([^\]]+)\]\]/g;
+  const blocks = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = rx.exec(source)) !== null) {
+    const before = source.slice(lastIndex, match.index).trim();
+    if (before) blocks.push(...plainTextArticleBlocks(before));
+    blocks.push({ type: match[1], url: match[2], thumbnail: match[2], caption: '' });
+    const matchedMediaIndex = mediaQueue.findIndex((m) => m.full === match[2] || m.url === match[2]);
+    if (matchedMediaIndex >= 0) mediaQueue.splice(matchedMediaIndex, 1);
+    lastIndex = rx.lastIndex;
+  }
+
+  const after = source.slice(lastIndex).trim();
+  if (after) blocks.push(...plainTextArticleBlocks(after));
+  return blocks;
+}
+
+function plainTextArticleBlocks(text) {
+  const lines = String(text || '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  if (!lines.length) return [];
+
+  return lines.map((line) => {
+    if (/^(-{3,}|—{3,}|_{3,})$/.test(line)) return { type: 'divider' };
+    if (line.startsWith('>')) return { type: 'quote', text: line.replace(/^>\s*/, '').trim() };
+    if (line.startsWith('## ')) return { type: 'subheading', text: line.slice(3).trim() };
+    if (line.startsWith('# ')) return { type: 'heading', text: line.slice(2).trim() };
+    return { type: 'paragraph', text: line };
+  });
+}
+
+function buildArticleBlocks(post) {
+  const storedBlocks = Array.isArray(post?.content_blocks)
+    ? post.content_blocks
+    : safeJsonParse(post?.content_blocks);
+  if (Array.isArray(storedBlocks) && storedBlocks.length) {
+    return extractJsonArticleBlocks(storedBlocks, []);
+  }
+
+  const mediaQueue = mediaFromPost(post).slice();
+  const rawText = String(post?.content || post?.description || '').trim();
+  const json = safeJsonParse(rawText);
+  const blocks = json
+    ? extractJsonArticleBlocks(json, mediaQueue)
+    : extractTokenArticleBlocks(rawText, mediaQueue);
+
+  if (!blocks.length && rawText) blocks.push(...plainTextArticleBlocks(rawText));
+  blocks.push(...mediaQueue.map((m) => ({ type: m.type, url: m.full || m.url, thumbnail: m.url, caption: m.caption || '' })));
+  return blocks;
+}
+
+function normalizeExternalUrl(raw = '') {
+  const value = String(raw || '').trim();
+  if (!value) return '';
+  if (/^https?:\/\//i.test(value)) return value;
+  if (/^www\./i.test(value)) return `https://${value}`;
+  return value;
+}
+
+function tokenizeRichText(text = '') {
+  const source = String(text || '');
+  const tokens = [];
+  const richPattern = /\[([^\]]+)\]\(([^)\s]+)\)|(https?:\/\/[^\s،,.!?:;"')\]]+|www\.[^\s،,.!?:;"')\]]+|[a-z0-9.-]+\.[a-z]{2,}(?:\/[^\s،,.!?:;"')\]]*)?)|(@[\w\u0600-\u06FF.]+)|(#[\w\u0600-\u06FF]+)/giu;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = richPattern.exec(source)) !== null) {
+    if (match.index > lastIndex) {
+      tokens.push({ type: 'text', value: source.slice(lastIndex, match.index) });
+    }
+
+    if (match[1] && match[2]) {
+      tokens.push({ type: 'url', value: match[1], href: normalizeExternalUrl(match[2]), suffix: '' });
+    } else if (match[3]) {
+      tokens.push({ type: 'url', value: match[3], href: normalizeExternalUrl(match[3]), suffix: '' });
+    } else if (match[4]) {
+      const handle = normalizeHandle(match[4]);
+      tokens.push(handle ? { type: 'mention', value: match[4], handle, suffix: '' } : { type: 'text', value: match[4] });
+    } else if (match[5]) {
+      const tag = match[5].replace(/^#+/, '').replace(/[^\w\u0600-\u06FF]/g, '').trim();
+      tokens.push(tag ? { type: 'hashtag', value: match[5], tag, suffix: '' } : { type: 'text', value: match[5] });
+    }
+
+    lastIndex = richPattern.lastIndex;
+  }
+
+  if (lastIndex < source.length) tokens.push({ type: 'text', value: source.slice(lastIndex) });
+  return tokens;
 }
 
 function deriveReactionsCount(reactions, postId) {
@@ -236,12 +433,18 @@ function ExpandableCommentText({ text = '', maxChars = 210 }) {
 
 export default function InterfaceClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [active, setActive] = useState('home');
   const [homeTab, setHomeTab] = useState('latest'); // latest | suggested
   const [suggestedFilter, setSuggestedFilter] = useState('following');
+  const [selectedGroupId, setSelectedGroupId] = useState(null);
+  const [groupTab, setGroupTab] = useState('posts');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [feedPosts, setFeedPosts] = useState([]);
+  const [extraGroupPosts, setExtraGroupPosts] = useState([]);
+  const [originalPostsById, setOriginalPostsById] = useState({});
+  const [availableGroups, setAvailableGroups] = useState([]);
   const [profiles, setProfiles] = useState([]);
   const [profilesMap, setProfilesMap] = useState({});
   const [commentsByPost, setCommentsByPost] = useState({});
@@ -265,6 +468,19 @@ export default function InterfaceClient() {
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const bottomSentinelRef = useRef(null);
+
+  useEffect(() => {
+    const view = searchParams.get('view');
+    if (SECTION_LABELS.some((section) => section.key === view)) {
+      setActive(view);
+    }
+  }, [searchParams]);
+
+  function changeSection(sectionKey) {
+    setActive(sectionKey);
+    const suffix = sectionKey === 'home' ? '' : `?view=${encodeURIComponent(sectionKey)}`;
+    router.replace(`/interface${suffix}`, { scroll: false });
+  }
 
   useEffect(() => {
     let mounted = true;
@@ -292,7 +508,7 @@ export default function InterfaceClient() {
 
         const postsRes = await client
           .from('posts')
-          .select('id,user_id,content,description,media_type,created_at,group_id,channel_id,background_style,privacy,allow_comments,is_ai_generated,is_sensitive')
+          .select('id,user_id,content,description,content_blocks,media_type,created_at,group_id,channel_id,original_post_id,is_repost,background_style,privacy,allow_comments,is_ai_generated,is_sensitive')
           .order('created_at', { ascending: false })
           .limit(fetchLimit);
 
@@ -304,15 +520,42 @@ export default function InterfaceClient() {
         setHasMore(posts.length >= fetchLimit);
         setFeedPosts(posts);
 
-        const userIds = [...new Set(posts.map((p) => p.user_id).filter(Boolean))];
-        const groupIds = [...new Set(posts.map((p) => p.group_id).filter(Boolean))];
-        const channelIds = [...new Set(posts.map((p) => p.channel_id).filter(Boolean))];
         const postIds = posts.map((p) => p.id).filter(Boolean);
+        const originalPostIds = [
+          ...new Set(posts.map((p) => p.original_post_id).filter(Boolean)),
+        ];
+        const missingOriginalPostIds = originalPostIds.filter((id) => !postIds.includes(id));
+        const originalPostsRes = missingOriginalPostIds.length
+          ? await client
+            .from('posts')
+            .select('id,user_id,content,description,content_blocks,media_type,created_at,group_id,channel_id,original_post_id,is_repost,background_style,privacy,allow_comments,is_ai_generated,is_sensitive')
+            .in('id', missingOriginalPostIds)
+            .neq('privacy', 'private')
+          : { data: [], error: null };
 
-        const [peopleRes, postMediaRes, commentsRes, likesRes, myLikesRes, followsRes, groupsRes, channelsRes] = await Promise.all([
+        if (originalPostsRes.error) {
+          throw new Error(originalPostsRes.error.message || originalPostsRes.error.code || 'original_posts_query_failed');
+        }
+
+        const originalPosts = originalPostsRes.data || [];
+        const relationPosts = [...posts, ...originalPosts];
+        const relationPostIds = [...new Set(relationPosts.map((p) => p.id).filter(Boolean))];
+        const userIds = [...new Set(relationPosts.map((p) => p.user_id).filter(Boolean))];
+        const groupIds = [...new Set(relationPosts.map((p) => p.group_id).filter(Boolean))];
+        const channelIds = [...new Set(relationPosts.map((p) => p.channel_id).filter(Boolean))];
+        const memberGroupsRows = await client
+          .from('group_members')
+          .select('group_id')
+          .eq('user_id', meId)
+          .eq('status', 'approved');
+        const memberGroupIds = [
+          ...new Set((memberGroupsRows?.data || []).map((row) => row.group_id).filter(Boolean)),
+        ];
+
+        const [peopleRes, postMediaRes, commentsRes, likesRes, myLikesRes, followsRes, groupsRes, allGroupsRes, ownedGroupsRes, memberGroupsRes, channelsRes] = await Promise.all([
           client.from('profiles').select('user_id,username,full_name,avatar_url,is_verified,created_at').order('created_at', { ascending: false }).limit(200),
-          postIds.length
-            ? client.from('post_media').select('post_id,media_url,thumbnail_url,media_type,order_index').in('post_id', postIds).order('order_index', { ascending: true })
+          relationPostIds.length
+            ? client.from('post_media').select('post_id,media_url,thumbnail_url,media_type,order_index').in('post_id', relationPostIds).order('order_index', { ascending: true })
             : Promise.resolve({ data: [], error: null }),
           postIds.length
             ? client.from('comments').select('id,post_id,content,created_at,updated_at,user_id,parent_id').in('post_id', postIds).order('created_at', { ascending: true }).limit(400)
@@ -325,7 +568,12 @@ export default function InterfaceClient() {
             : Promise.resolve({ data: [], error: null }),
           client.from('follows').select('following_id').eq('follower_id', meId),
           groupIds.length
-            ? client.from('groups').select('id,name,avatar_url').in('id', groupIds)
+            ? client.from('groups').select('*, member_count:group_members(count)').in('id', groupIds)
+            : Promise.resolve({ data: [], error: null }),
+          client.from('groups').select('*, member_count:group_members(count)').order('created_at', { ascending: false }).limit(120),
+          client.from('groups').select('*, member_count:group_members(count)').eq('owner_id', meId).order('created_at', { ascending: false }).limit(120),
+          memberGroupIds.length
+            ? client.from('groups').select('*, member_count:group_members(count)').in('id', memberGroupIds).order('created_at', { ascending: false }).limit(120)
             : Promise.resolve({ data: [], error: null }),
           channelIds.length
             ? client.from('channels').select('id,name,username,avatar_url,is_verified').in('id', channelIds)
@@ -347,20 +595,115 @@ export default function InterfaceClient() {
 
         const gMap = {};
         for (const g of (groupsRes?.data || [])) gMap[g.id] = g;
+        const directGroupsMap = {};
+        for (const g of [
+          ...(allGroupsRes?.data || []),
+          ...(ownedGroupsRes?.data || []),
+          ...(memberGroupsRes?.data || []),
+          ...(groupsRes?.data || []),
+        ]) {
+          if (!g?.id) continue;
+          directGroupsMap[g.id] = g;
+        }
+        setAvailableGroups(Object.values(directGroupsMap));
+        for (const g of Object.values(directGroupsMap)) gMap[g.id] = g;
         const cMap = {};
         for (const c of (channelsRes?.data || [])) cMap[c.id] = c;
 
+        const allKnownGroupIds = Object.keys(directGroupsMap);
+        const groupPostsRes = allKnownGroupIds.length
+          ? await client
+            .from('posts')
+            .select('id,user_id,content,description,content_blocks,media_type,created_at,group_id,channel_id,original_post_id,is_repost,background_style,privacy,allow_comments,is_ai_generated,is_sensitive')
+            .in('group_id', allKnownGroupIds)
+            .order('created_at', { ascending: false })
+            .limit(240)
+          : { data: [], error: null };
+        if (groupPostsRes.error) {
+          throw new Error(groupPostsRes.error.message || groupPostsRes.error.code || 'group_posts_query_failed');
+        }
+
+        const groupRawPosts = groupPostsRes?.data || [];
+        const groupPostIds = groupRawPosts.map((p) => p.id).filter(Boolean);
+        const groupOriginalPostIds = [
+          ...new Set(groupRawPosts.map((p) => p.original_post_id).filter(Boolean)),
+        ].filter((id) => !groupPostIds.includes(id) && !postIds.includes(id));
+        const groupOriginalPostsRes = groupOriginalPostIds.length
+          ? await client
+            .from('posts')
+            .select('id,user_id,content,description,content_blocks,media_type,created_at,group_id,channel_id,original_post_id,is_repost,background_style,privacy,allow_comments,is_ai_generated,is_sensitive')
+            .in('id', groupOriginalPostIds)
+            .neq('privacy', 'private')
+          : { data: [], error: null };
+        if (groupOriginalPostsRes.error) {
+          throw new Error(groupOriginalPostsRes.error.message || groupOriginalPostsRes.error.code || 'group_original_posts_query_failed');
+        }
+        const groupOriginalPosts = groupOriginalPostsRes?.data || [];
+        const groupRelationPosts = [...groupRawPosts, ...groupOriginalPosts];
+        const groupRelationPostIds = [...new Set(groupRelationPosts.map((p) => p.id).filter(Boolean))];
+        const groupUserIds = [...new Set(groupRelationPosts.map((p) => p.user_id).filter(Boolean))];
+        const missingGroupUserIds = groupUserIds.filter((id) => !pMap[id]);
+        const [groupPeopleRes, groupMediaRes, groupCommentsRes, groupLikesRes, groupMyLikesRes, groupPollsRes] = await Promise.all([
+          missingGroupUserIds.length
+            ? client.from('profiles').select('user_id,username,full_name,avatar_url,is_verified,created_at').in('user_id', missingGroupUserIds)
+            : Promise.resolve({ data: [], error: null }),
+          groupRelationPostIds.length
+            ? client.from('post_media').select('post_id,media_url,thumbnail_url,media_type,order_index').in('post_id', groupRelationPostIds).order('order_index', { ascending: true })
+            : Promise.resolve({ data: [], error: null }),
+          groupPostIds.length
+            ? client.from('comments').select('id,post_id,content,created_at,updated_at,user_id,parent_id').in('post_id', groupPostIds).order('created_at', { ascending: true }).limit(800)
+            : Promise.resolve({ data: [], error: null }),
+          groupPostIds.length
+            ? client.from('post_reactions').select('post_id,reaction_type').in('post_id', groupPostIds).eq('reaction_type', 'like')
+            : Promise.resolve({ data: [], error: null }),
+          groupPostIds.length
+            ? client.from('post_reactions').select('post_id').in('post_id', groupPostIds).eq('reaction_type', 'like').eq('user_id', meId)
+            : Promise.resolve({ data: [], error: null }),
+          groupPostIds.length
+            ? client
+              .from('post_polls')
+              .select(`
+                id,post_id,question,expires_at,
+                post_poll_options (
+                  id,option_text,order_index,
+                  post_poll_votes ( user_id )
+                )
+              `)
+              .in('post_id', groupPostIds)
+            : Promise.resolve({ data: [], error: null }),
+        ]);
+
+        const groupPeople = groupPeopleRes?.data || [];
+        for (const p of groupPeople) pMap[p.user_id] = p;
+        if (groupPeople.length) {
+          setProfiles([...people, ...groupPeople]);
+          setProfilesMap({ ...pMap });
+        }
+
+        for (const m of (groupMediaRes?.data || [])) {
+          if (!pmMap[m.post_id]) pmMap[m.post_id] = [];
+          pmMap[m.post_id].push(m);
+        }
+
+        const enrichPost = (p) => ({
+          ...p,
+          profiles: pMap[p.user_id] || null,
+          groups: p.group_id ? gMap[p.group_id] || null : null,
+          channels: p.channel_id ? cMap[p.channel_id] || null : null,
+          post_media: pmMap[p.id] || [],
+        });
+
+        const originalsMap = {};
+        for (const p of originalPosts) originalsMap[p.id] = enrichPost(p);
+        for (const p of groupOriginalPosts) originalsMap[p.id] = enrichPost(p);
+        setOriginalPostsById(originalsMap);
+        setExtraGroupPosts(groupRawPosts.map((p) => enrichPost(p)));
+
         setFeedPosts((prev) =>
-          prev.map((p) => ({
-            ...p,
-            profiles: pMap[p.user_id] || null,
-            groups: p.group_id ? gMap[p.group_id] || null : null,
-            channels: p.channel_id ? cMap[p.channel_id] || null : null,
-            post_media: pmMap[p.id] || [],
-          }))
+          prev.map((p) => enrichPost(p))
         );
 
-        const commentsRows = commentsRes?.data || [];
+        const commentsRows = [...(commentsRes?.data || []), ...(groupCommentsRes?.data || [])];
         const commentsGrouped = {};
         for (const c of commentsRows) {
           if (!commentsGrouped[c.post_id]) commentsGrouped[c.post_id] = [];
@@ -388,30 +731,32 @@ export default function InterfaceClient() {
         }
 
         const likeMap = {};
-        for (const r of (likesRes?.data || [])) {
+        for (const r of [...(likesRes?.data || []), ...(groupLikesRes?.data || [])]) {
           likeMap[r.post_id] = (likeMap[r.post_id] || 0) + 1;
         }
         setLikeCounts(likeMap);
 
-        const likedSet = new Set((myLikesRes?.data || []).map((r) => r.post_id));
+        const likedSet = new Set([...(myLikesRes?.data || []), ...(groupMyLikesRes?.data || [])].map((r) => r.post_id));
         setLikedByPost(likedSet);
 
         const followsSet = new Set((followsRes?.data || []).map((r) => r.following_id));
         setFollowed(followsSet);
 
-        if (postIds.length) {
-          const pollsRes = await client
-            .from('post_polls')
-            .select(`
-              id,post_id,question,expires_at,
-              post_poll_options (
-                id,option_text,order_index,
-                post_poll_votes ( user_id )
-              )
-            `)
-            .in('post_id', postIds);
+        if (postIds.length || groupPostIds.length) {
+          const pollsRes = postIds.length
+            ? await client
+              .from('post_polls')
+              .select(`
+                id,post_id,question,expires_at,
+                post_poll_options (
+                  id,option_text,order_index,
+                  post_poll_votes ( user_id )
+                )
+              `)
+              .in('post_id', postIds)
+            : { data: [], error: null };
           const nextPolls = {};
-          for (const poll of (pollsRes?.data || [])) {
+          for (const poll of [...(pollsRes?.data || []), ...(groupPollsRes?.data || [])]) {
             const options = [...((poll?.post_poll_options || []))].sort((a, b) => (a?.order_index || 0) - (b?.order_index || 0));
             let myOptionId = null;
             for (const opt of options) {
@@ -480,10 +825,14 @@ export default function InterfaceClient() {
   const derived = useMemo(() => {
     const home = feedPosts;
     const reels = feedPosts.filter((p) => (p?.media_type || '').toLowerCase().includes('video') || mediaFromPost(p).some((m) => m.type === 'video'));
-    const groups = feedPosts.filter((p) => !!p.group_id);
+    const groupPostMap = new Map();
+    for (const post of [...feedPosts.filter((p) => !!p.group_id), ...extraGroupPosts]) {
+      if (post?.id) groupPostMap.set(post.id, post);
+    }
+    const groups = [...groupPostMap.values()].sort((a, b) => new Date(b?.created_at || 0) - new Date(a?.created_at || 0));
     const channels = feedPosts.filter((p) => !!p.channel_id);
     return { home, reels, groups, channels };
-  }, [feedPosts]);
+  }, [feedPosts, extraGroupPosts]);
 
   const counts = useMemo(
     () => ({
@@ -496,6 +845,61 @@ export default function InterfaceClient() {
     [derived, profiles]
   );
   const postsById = useMemo(() => Object.fromEntries(feedPosts.map((p) => [p.id, p])), [feedPosts]);
+  const getOriginalPost = (post) => (
+    post?.original_post_id
+      ? postsById[post.original_post_id] || originalPostsById[post.original_post_id] || null
+      : null
+  );
+  const groupCards = useMemo(() => {
+    const map = new Map();
+    for (const group of availableGroups) {
+      if (!group?.id) continue;
+      map.set(group.id, {
+        id: group.id,
+        name: group?.name || 'مجموعة',
+        username: group?.username || '',
+        description: group?.description || '',
+        coverUrl: group?.cover_url || group?.coverUrl || '',
+        avatarUrl: group?.avatar_url || group?.avatarUrl || '',
+        category: groupCategoryLabel(group?.category),
+        type: group?.type || 'public',
+        ownerId: group?.owner_id || group?.ownerId || '',
+        memberCount: extractMemberCount(group?.member_count),
+        postCount: 0,
+        videoCount: 0,
+        latestAt: group?.created_at || null,
+      });
+    }
+    for (const post of derived.groups) {
+      const group = post?.groups || {};
+      const id = post?.group_id || group?.id;
+      if (!id) continue;
+      const current = map.get(id) || {
+        id,
+        name: group?.name || 'مجموعة',
+        username: group?.username || '',
+        description: group?.description || '',
+        coverUrl: group?.cover_url || group?.coverUrl || '',
+        avatarUrl: group?.avatar_url || group?.avatarUrl || '',
+        category: groupCategoryLabel(group?.category),
+        type: group?.type || 'public',
+        ownerId: group?.owner_id || group?.ownerId || '',
+        memberCount: extractMemberCount(group?.member_count),
+        postCount: 0,
+        videoCount: 0,
+        latestAt: post?.created_at || null,
+      };
+      current.postCount += 1;
+      if ((post?.media_type || '').toLowerCase().includes('video') || mediaFromPost(post).some((item) => item.type === 'video')) {
+        current.videoCount += 1;
+      }
+      const latestMs = new Date(current.latestAt || 0).getTime();
+      const postMs = new Date(post?.created_at || 0).getTime();
+      if (postMs > latestMs) current.latestAt = post.created_at;
+      map.set(id, current);
+    }
+    return [...map.values()].sort((a, b) => new Date(b.latestAt || 0) - new Date(a.latestAt || 0));
+  }, [availableGroups, derived.groups]);
   const mentionMap = useMemo(() => {
     const map = {};
     for (const p of profiles || []) {
@@ -706,7 +1110,7 @@ export default function InterfaceClient() {
     const newPostRes = await client
       .from('posts')
       .insert({ user_id: me, content: trimmedQuote, description: trimmedQuote, media_type: 'none', original_post_id: post.id, is_repost: true })
-      .select('id,user_id,content,description,media_type,created_at,group_id,channel_id,original_post_id,is_repost')
+      .select('id,user_id,content,description,content_blocks,media_type,created_at,group_id,channel_id,original_post_id,is_repost')
       .single();
 
     await client.from('reposts').upsert({ post_id: post.id, user_id: me, quote_text: trimmedQuote || null }, { onConflict: 'post_id,user_id' });
@@ -718,12 +1122,14 @@ export default function InterfaceClient() {
   async function deletePost(post) {
     if (!me || !post?.id || post.user_id !== me) return;
     setFeedPosts((prev) => prev.filter((item) => item.id !== post.id));
+    setExtraGroupPosts((prev) => prev.filter((item) => item.id !== post.id));
 
     const client = await getSupabaseClient();
     if (!client) return;
     const { error } = await client.from('posts').delete().eq('id', post.id).eq('user_id', me);
     if (error) {
       setFeedPosts((prev) => [post, ...prev]);
+      if (post.group_id) setExtraGroupPosts((prev) => [post, ...prev]);
       notify('تعذر حذف المنشور حالياً', 'error');
       return;
     }
@@ -758,6 +1164,7 @@ export default function InterfaceClient() {
     }
 
     setFeedPosts((prev) => prev.map((item) => (item.id === post.id ? { ...item, content: trimmed, description: trimmed } : item)));
+    setExtraGroupPosts((prev) => prev.map((item) => (item.id === post.id ? { ...item, content: trimmed, description: trimmed } : item)));
     notify('تم تعديل المنشور');
   }
 
@@ -793,6 +1200,7 @@ export default function InterfaceClient() {
     await client.from('follows').delete().match({ follower_id: me, following_id: post.user_id });
     await client.from('follows').delete().match({ follower_id: post.user_id, following_id: me });
     setFeedPosts((prev) => prev.filter((item) => item.user_id !== post.user_id));
+    setExtraGroupPosts((prev) => prev.filter((item) => item.user_id !== post.user_id));
     notify('تم حظر المستخدم');
   }
 
@@ -884,7 +1292,7 @@ export default function InterfaceClient() {
           likeCount={deriveReactionsCount(likeCounts, p.id)}
           isFollowing={followed.has(p.user_id)}
           comments={commentsByPost[p.id] || []}
-          originalPost={p?.original_post_id ? postsById[p.original_post_id] || null : null}
+          originalPost={getOriginalPost(p)}
           onToggleLike={() => toggleLike(p.id)}
           onToggleFollow={() => toggleFollow(p.user_id)}
           onOpenComments={() => setCommentModalPost(p)}
@@ -903,15 +1311,25 @@ export default function InterfaceClient() {
       ))}
 
       {active === 'reels' && derived.reels.map((p) => (
-        <PostCard key={`reel-${p.id}`} post={p} me={me} isLiked={likedByPost.has(p.id)} likeCount={deriveReactionsCount(likeCounts, p.id)} isFollowing={followed.has(p.user_id)} comments={commentsByPost[p.id] || []} originalPost={p?.original_post_id ? postsById[p.original_post_id] || null : null} onToggleLike={() => toggleLike(p.id)} onToggleFollow={() => toggleFollow(p.user_id)} onOpenComments={() => setCommentModalPost(p)} onShare={() => openShareComposer(p)} onDeletePost={() => setDeleteTargetPost(p)} onEditPost={() => openEditPostModal(p)} onCopyLink={() => copyPostLink(p)} onReportPost={() => reportPost(p)} onBlockUser={() => setBlockTargetPost(p)} label="ريلز" mentionMap={mentionMap} poll={pollsByPost[p.id] || null} onVotePoll={votePoll} onOpenPost={() => openPostPage(p)} />
+        <PostCard key={`reel-${p.id}`} post={p} me={me} isLiked={likedByPost.has(p.id)} likeCount={deriveReactionsCount(likeCounts, p.id)} isFollowing={followed.has(p.user_id)} comments={commentsByPost[p.id] || []} originalPost={getOriginalPost(p)} onToggleLike={() => toggleLike(p.id)} onToggleFollow={() => toggleFollow(p.user_id)} onOpenComments={() => setCommentModalPost(p)} onShare={() => openShareComposer(p)} onDeletePost={() => setDeleteTargetPost(p)} onEditPost={() => openEditPostModal(p)} onCopyLink={() => copyPostLink(p)} onReportPost={() => reportPost(p)} onBlockUser={() => setBlockTargetPost(p)} label="ريلز" mentionMap={mentionMap} poll={pollsByPost[p.id] || null} onVotePoll={votePoll} onOpenPost={() => openPostPage(p)} />
       ))}
 
-      {active === 'groups' && derived.groups.map((p) => (
-        <PostCard key={`group-${p.id}`} post={p} me={me} isLiked={likedByPost.has(p.id)} likeCount={deriveReactionsCount(likeCounts, p.id)} isFollowing={followed.has(p.user_id)} comments={commentsByPost[p.id] || []} originalPost={p?.original_post_id ? postsById[p.original_post_id] || null : null} onToggleLike={() => toggleLike(p.id)} onToggleFollow={() => toggleFollow(p.user_id)} onOpenComments={() => setCommentModalPost(p)} onShare={() => openShareComposer(p)} onDeletePost={() => setDeleteTargetPost(p)} onEditPost={() => openEditPostModal(p)} onCopyLink={() => copyPostLink(p)} onReportPost={() => reportPost(p)} onBlockUser={() => setBlockTargetPost(p)} label={`مجموعة: ${p?.groups?.name || ''}`} mentionMap={mentionMap} poll={pollsByPost[p.id] || null} onVotePoll={votePoll} onOpenPost={() => openPostPage(p)} />
-      ))}
+      {active === 'groups' ? (
+        <GroupsSection
+          groups={groupCards}
+          posts={derived.groups}
+          selectedGroupId={selectedGroupId}
+          onSelectGroup={setSelectedGroupId}
+          activeTab={groupTab}
+          onChangeTab={setGroupTab}
+          renderPost={(p) => (
+            <PostCard key={`group-${p.id}`} post={p} me={me} isLiked={likedByPost.has(p.id)} likeCount={deriveReactionsCount(likeCounts, p.id)} isFollowing={followed.has(p.user_id)} comments={commentsByPost[p.id] || []} originalPost={getOriginalPost(p)} onToggleLike={() => toggleLike(p.id)} onToggleFollow={() => toggleFollow(p.user_id)} onOpenComments={() => setCommentModalPost(p)} onShare={() => openShareComposer(p)} onDeletePost={() => setDeleteTargetPost(p)} onEditPost={() => openEditPostModal(p)} onCopyLink={() => copyPostLink(p)} onReportPost={() => reportPost(p)} onBlockUser={() => setBlockTargetPost(p)} label={`مجموعة: ${p?.groups?.name || ''}`} mentionMap={mentionMap} poll={pollsByPost[p.id] || null} onVotePoll={votePoll} onOpenPost={() => openPostPage(p)} />
+          )}
+        />
+      ) : null}
 
       {active === 'channels' && derived.channels.map((p) => (
-        <PostCard key={`channel-${p.id}`} post={p} me={me} isLiked={likedByPost.has(p.id)} likeCount={deriveReactionsCount(likeCounts, p.id)} isFollowing={followed.has(p.user_id)} comments={commentsByPost[p.id] || []} originalPost={p?.original_post_id ? postsById[p.original_post_id] || null : null} onToggleLike={() => toggleLike(p.id)} onToggleFollow={() => toggleFollow(p.user_id)} onOpenComments={() => setCommentModalPost(p)} onShare={() => openShareComposer(p)} onDeletePost={() => setDeleteTargetPost(p)} onEditPost={() => openEditPostModal(p)} onCopyLink={() => copyPostLink(p)} onReportPost={() => reportPost(p)} onBlockUser={() => setBlockTargetPost(p)} label={`قناة: ${p?.channels?.name || p?.channels?.username || ''}`} mentionMap={mentionMap} poll={pollsByPost[p.id] || null} onVotePoll={votePoll} onOpenPost={() => openPostPage(p)} />
+        <PostCard key={`channel-${p.id}`} post={p} me={me} isLiked={likedByPost.has(p.id)} likeCount={deriveReactionsCount(likeCounts, p.id)} isFollowing={followed.has(p.user_id)} comments={commentsByPost[p.id] || []} originalPost={getOriginalPost(p)} onToggleLike={() => toggleLike(p.id)} onToggleFollow={() => toggleFollow(p.user_id)} onOpenComments={() => setCommentModalPost(p)} onShare={() => openShareComposer(p)} onDeletePost={() => setDeleteTargetPost(p)} onEditPost={() => openEditPostModal(p)} onCopyLink={() => copyPostLink(p)} onReportPost={() => reportPost(p)} onBlockUser={() => setBlockTargetPost(p)} label={`قناة: ${p?.channels?.name || p?.channels?.username || ''}`} mentionMap={mentionMap} poll={pollsByPost[p.id] || null} onVotePoll={votePoll} onOpenPost={() => openPostPage(p)} />
       ))}
       {active === 'explore' && profiles.map((u) => (
         <article key={u.user_id} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
@@ -937,7 +1355,7 @@ export default function InterfaceClient() {
       {!loading &&
       ((active === 'home' && homeRenderPosts.length === 0) ||
         (active === 'reels' && derived.reels.length === 0) ||
-        (active === 'groups' && derived.groups.length === 0) ||
+        (active === 'groups' && groupCards.length === 0) ||
         (active === 'channels' && derived.channels.length === 0) ||
         (active === 'explore' && profiles.length === 0)) ? (
         <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center text-gray-500">لا توجد بيانات حالياً في هذا القسم.</div>
@@ -965,7 +1383,7 @@ export default function InterfaceClient() {
               <button
                 key={s.key}
                 type="button"
-                onClick={() => setActive(s.key)}
+                onClick={() => changeSection(s.key)}
                 className={[
                   'flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold transition',
                   active === s.key ? 'bg-red-50 text-red-700' : 'bg-gray-50 text-gray-700 hover:bg-gray-100',
@@ -1134,6 +1552,183 @@ function CreatePostEntry() {
   );
 }
 
+function GroupsSection({
+  groups,
+  posts,
+  selectedGroupId,
+  onSelectGroup,
+  activeTab,
+  onChangeTab,
+  renderPost,
+}) {
+  const activeGroup = groups.find((group) => group.id === selectedGroupId) || groups[0] || null;
+  const activeGroupId = activeGroup?.id || null;
+  const groupPosts = activeGroupId ? posts.filter((post) => post.group_id === activeGroupId) : posts;
+  const visiblePosts = groupPosts.filter((post) => {
+    if (activeTab === 'photos') return mediaFromPost(post).some((item) => item.type === 'image');
+    if (activeTab === 'videos') return (post?.media_type || '').toLowerCase().includes('video') || mediaFromPost(post).some((item) => item.type === 'video');
+    return true;
+  });
+  const mediaCount = groupPosts.reduce((total, post) => total + mediaFromPost(post).filter((item) => item.type === 'image').length, 0);
+  const videoCount = groupPosts.filter((post) => (post?.media_type || '').toLowerCase().includes('video') || mediaFromPost(post).some((item) => item.type === 'video')).length;
+  const tabs = [
+    { key: 'posts', label: 'المنشورات', count: groupPosts.length },
+    { key: 'photos', label: 'الصور', count: mediaCount },
+    { key: 'videos', label: 'الفيديوهات', count: videoCount },
+    { key: 'explore', label: 'استكشاف', count: groups.length },
+  ];
+
+  if (!groups.length) {
+    return (
+      <div className="rounded-3xl border border-gray-200 bg-white p-8 text-center shadow-sm">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-sky-50 text-sky-600">
+          <SectionIcon section="groups" />
+        </div>
+        <h2 className="text-2xl font-black text-gray-950">لا توجد مجموعات بعد</h2>
+        <p className="mx-auto mt-2 max-w-md text-sm leading-7 text-gray-500">عندما يتم نشر محتوى داخل المجموعات ستظهر هنا بتصميم كامل يشبه التطبيق.</p>
+        <Link href="/create-post" className="mt-5 inline-flex rounded-full bg-red-700 px-6 py-2 text-sm font-black text-white hover:bg-red-800">إنشاء منشور</Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4" dir="rtl">
+      <section className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
+        <div className="relative h-44 bg-gradient-to-br from-sky-100 via-white to-red-100 sm:h-56">
+          {activeGroup?.coverUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={activeGroup.coverUrl} alt={activeGroup.name} className="h-full w-full object-cover" />
+          ) : (
+            <div className="absolute inset-0">
+              <div className="absolute -right-10 top-8 h-40 w-40 rounded-full bg-red-200/50 blur-3xl" />
+              <div className="absolute -left-12 bottom-4 h-44 w-44 rounded-full bg-sky-200/60 blur-3xl" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,.75),transparent_35%),linear-gradient(135deg,rgba(14,165,233,.14),rgba(220,38,38,.12))]" />
+            </div>
+          )}
+          <div className="absolute bottom-4 right-5 flex items-end gap-3">
+            <div className="h-24 w-24 overflow-hidden rounded-full border-4 border-white bg-gray-100 shadow-lg">
+              {activeGroup?.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={activeGroup.avatarUrl} alt={activeGroup.name} className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-sky-50 text-sky-600">
+                  <SectionIcon section="groups" />
+                </div>
+              )}
+            </div>
+            <div className="mb-1 text-right">
+              <h2 className="text-2xl font-black text-gray-950 drop-shadow-sm">{activeGroup?.name || 'مجموعة'}</h2>
+              <p className="mt-1 text-sm font-bold text-gray-600">
+                {activeGroup?.type === 'private' ? 'مجموعة خاصة' : 'مجموعة عامة'} • {activeGroup?.memberCount || 0} أعضاء
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-4 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap gap-2">
+              <Link href="/create-post" className="inline-flex items-center gap-2 rounded-full bg-red-700 px-4 py-2 text-sm font-black text-white hover:bg-red-800">
+                <EntryPencilIcon />
+                نشر في المجموعة
+              </Link>
+              <button type="button" className="inline-flex items-center gap-2 rounded-full bg-sky-50 px-4 py-2 text-sm font-black text-sky-700 ring-1 ring-sky-100">
+                <AccountsIcon />
+                دعوة
+              </button>
+              <button type="button" className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-4 py-2 text-sm font-black text-gray-800">
+                <ShieldIcon />
+                إدارة
+              </button>
+            </div>
+            <p className="max-w-xl text-right text-sm font-semibold leading-7 text-gray-600">
+              {activeGroup?.description || `مجتمع ${activeGroup?.category || 'عام'} لتبادل المنشورات والنقاشات والوسائط.`}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2">
+            <GroupStat label="المنشورات" value={activeGroup?.postCount || groupPosts.length} />
+            <GroupStat label="الأعضاء" value={activeGroup?.memberCount || 0} />
+            <GroupStat label="الفيديوهات" value={activeGroup?.videoCount || videoCount} />
+          </div>
+
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {groups.map((group) => (
+              <button
+                key={group.id}
+                type="button"
+                onClick={() => onSelectGroup(group.id)}
+                className={[
+                  'flex min-w-[230px] items-center justify-between gap-3 rounded-2xl border p-3 text-right transition',
+                  group.id === activeGroupId ? 'border-sky-300 bg-sky-50' : 'border-gray-200 bg-white hover:bg-gray-50',
+                ].join(' ')}
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-black text-gray-950">{group.name}</p>
+                  <p className="mt-1 text-xs font-semibold text-gray-500">{group.category} • {group.postCount} منشورات</p>
+                </div>
+                <div className="h-12 w-12 overflow-hidden rounded-full bg-gray-100">
+                  {group.avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={group.avatarUrl} alt={group.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-sky-600"><SectionIcon section="groups" /></div>
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <div className="flex gap-2 overflow-x-auto border-t border-gray-100 pt-3">
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => onChangeTab(tab.key)}
+                className={[
+                  'shrink-0 rounded-full px-4 py-2 text-xs font-black transition',
+                  activeTab === tab.key ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+                ].join(' ')}
+              >
+                {tab.label} {tab.count ? <span className="opacity-80">({tab.count})</span> : null}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {activeTab === 'explore' ? (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {groups.map((group) => (
+            <article key={`explore-${group.id}`} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+              <div className="flex items-center justify-between gap-3">
+                <button type="button" onClick={() => { onSelectGroup(group.id); onChangeTab('posts'); }} className="rounded-full bg-sky-50 px-4 py-2 text-xs font-black text-sky-700">عرض</button>
+                <div className="min-w-0 text-right">
+                  <h3 className="truncate text-lg font-black text-gray-950">{group.name}</h3>
+                  <p className="text-xs font-semibold text-gray-500">{group.memberCount || 0} أعضاء • {group.postCount} منشورات</p>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : visiblePosts.length ? (
+        visiblePosts.map((post) => renderPost(post))
+      ) : (
+        <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center text-sm font-bold text-gray-500">لا توجد عناصر في هذا التبويب حاليًا.</div>
+      )}
+    </div>
+  );
+}
+
+function GroupStat({ label, value }) {
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-gray-50 p-3 text-center">
+      <p className="text-xl font-black text-gray-950">{value}</p>
+      <p className="mt-1 text-xs font-bold text-gray-500">{label}</p>
+    </div>
+  );
+}
+
 function PostCard({
   post,
   label,
@@ -1161,6 +1756,8 @@ function PostCard({
   const [revealSensitive, setRevealSensitive] = useState(false);
   const media = mediaFromPost(post);
   const first = media[0];
+  const articleBlocks = buildArticleBlocks(post);
+  const originalArticleBlocks = originalPost ? buildArticleBlocks(originalPost) : [];
   const isOwner = post?.user_id === me;
   const isTextOnly = !first && String(post?.content || post?.description || '').trim().length > 0;
 
@@ -1296,7 +1893,10 @@ function PostCard({
           <div className="text-right text-sm font-semibold text-gray-700">أعاد {authorName} نشر هذا</div>
           {String(post?.content || post?.description || '').trim() ? (
             <div className="rounded-2xl p-3" style={textContainerStyle(bgStyle) || undefined} onClick={openFromSurface}>
-              <PostText text={post.content || post.description} mentionMap={mentionMap} />
+              <RichArticleText
+                text={post.content || post.description}
+                className="whitespace-pre-wrap text-xl font-black leading-9 text-current"
+              />
             </div>
           ) : null}
           <div className="rounded-2xl border border-gray-200 bg-gray-50 p-3">
@@ -1307,42 +1907,26 @@ function PostCard({
               </div>
               <Avatar src={originalPost?.profiles?.avatar_url || originalPost?.channels?.avatar_url || originalPost?.groups?.avatar_url} alt={originalPost?.profiles?.username || 'user'} />
             </div>
-            <PostText text={originalPost?.content || originalPost?.description || 'منشور بدون نص'} mentionMap={mentionMap} />
-            {mediaFromPost(originalPost)[0] ? (
-              <div className="mt-3 overflow-hidden rounded-xl border border-gray-100 bg-black" onClick={openFromSurface}>
-                {mediaFromPost(originalPost)[0].type === 'video' ? (
-                  <video src={mediaFromPost(originalPost)[0].full || mediaFromPost(originalPost)[0].url} controls className="h-72 w-full object-contain" preload="metadata" />
-                ) : (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={mediaFromPost(originalPost)[0].url} alt="original-post" className="h-72 w-full object-cover" />
-                )}
-              </div>
-            ) : null}
+          <ArticleContentPreview
+            blocks={originalArticleBlocks.length ? originalArticleBlocks : plainTextArticleBlocks(originalPost?.content || originalPost?.description || 'منشور بدون نص')}
+            postId={originalPost.id}
+            onOpenPost={openFromSurface}
+            isSensitive={!!originalPost?.is_sensitive}
+            revealSensitive={revealSensitive}
+          />
           </div>
         </div>
       ) : (
         <div className="w-full rounded-2xl p-3 text-right transition hover:opacity-95" style={textContainerStyle(bgStyle) || undefined} onClick={openFromSurface}>
-          <PostText text={post.content || post.description || 'منشور بدون نص'} mentionMap={mentionMap} />
+          <ArticleContentPreview
+            blocks={articleBlocks.length ? articleBlocks : plainTextArticleBlocks(post.content || post.description || 'منشور بدون نص')}
+            postId={post.id}
+            onOpenPost={openFromSurface}
+            isSensitive={!!post?.is_sensitive}
+            revealSensitive={revealSensitive}
+          />
         </div>
       )}
-
-      {first ? (
-              <div className="mt-3 overflow-hidden rounded-xl border border-gray-100 bg-black" onClick={openFromSurface}>
-          {post?.is_sensitive && !revealSensitive ? (
-            <div className="flex h-72 w-full items-center justify-center bg-gray-900 text-center text-sm font-black text-white/90">
-              <div>
-                <p>محتوى حساس</p>
-                <p className="mt-1 text-xs text-white/70">اضغط زر عرض الوسائط الحساسة</p>
-              </div>
-            </div>
-          ) : first.type === 'video' ? (
-            <video src={first.full || first.url} controls className="h-72 w-full object-contain" preload="metadata" />
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={first.url} alt="post" className="h-72 w-full object-cover" />
-          )}
-        </div>
-      ) : null}
 
       {poll ? <PostPollWidget poll={poll} onVote={onVotePoll} /> : null}
 
@@ -1383,6 +1967,158 @@ function PostCard({
       </div>
 
     </article>
+  );
+}
+
+function ArticleContentPreview({
+  blocks = [],
+  postId,
+  onOpenPost,
+  isSensitive = false,
+  revealSensitive = false,
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const visibleLimit = 3;
+  const hasLongParagraph = blocks.some((block) => String(block?.text || '').length > 260);
+  const shouldClip = blocks.length > visibleLimit || hasLongParagraph;
+  const visibleBlocks = shouldClip && !expanded ? blocks.slice(0, visibleLimit) : blocks;
+
+  return (
+    <div className="space-y-4 text-right" dir="rtl">
+      {visibleBlocks.map((block, index) => (
+        <ArticleBlock
+          key={`${block.type}-${index}-${block.url || block.text || ''}`}
+          block={block}
+          postId={postId}
+          onOpenPost={onOpenPost}
+          compact={!expanded && index === visibleBlocks.length - 1 && hasLongParagraph}
+          isSensitive={isSensitive}
+          revealSensitive={revealSensitive}
+        />
+      ))}
+      {shouldClip ? (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            setExpanded((value) => !value);
+          }}
+          className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1.5 text-xs font-black text-blue-700 transition hover:bg-blue-100 hover:underline"
+        >
+          {expanded ? 'عرض أقل' : 'عرض المقال كاملًا'}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+function ArticleBlock({
+  block,
+  postId,
+  onOpenPost,
+  compact = false,
+  isSensitive = false,
+  revealSensitive = false,
+}) {
+  const text = String(block?.text || '').trim();
+  if (block?.type === 'divider') {
+    return <div className="mx-auto h-px w-2/3 bg-gradient-to-l from-transparent via-gray-300 to-transparent" />;
+  }
+  if (block?.type === 'heading') {
+    return <RichArticleText as="h2" text={text} className="text-2xl font-black leading-[1.55] text-gray-950" />;
+  }
+  if (block?.type === 'subheading') {
+    return <RichArticleText as="h3" text={text} className="text-xl font-extrabold leading-[1.6] text-gray-900" />;
+  }
+  if (block?.type === 'quote') {
+    return (
+      <blockquote className="rounded-2xl border-r-4 border-red-700 bg-red-50 px-4 py-3 text-base font-bold leading-8 text-red-950">
+        <RichArticleText as="span" text={text} />
+      </blockquote>
+    );
+  }
+  if (block?.type === 'image' || block?.type === 'video') {
+    const mediaUrl = block.url || block.thumbnail;
+    if (!mediaUrl) return null;
+    return (
+      <div className="overflow-hidden rounded-2xl border border-gray-100 bg-black" onClick={onOpenPost}>
+        {isSensitive && !revealSensitive ? (
+          <div className="flex h-72 w-full items-center justify-center bg-gray-900 text-center text-sm font-black text-white/90">
+            <div>
+              <p>محتوى حساس</p>
+              <p className="mt-1 text-xs text-white/70">اضغط زر عرض الوسائط الحساسة</p>
+            </div>
+          </div>
+        ) : block.type === 'video' ? (
+          <video src={mediaUrl} controls className="h-72 w-full object-contain" preload="metadata" />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={mediaUrl} alt={block.caption || 'post-media'} className="max-h-[72vh] w-full object-contain" loading="lazy" />
+        )}
+        {block.caption ? (
+          <div className="bg-white px-3 py-2 text-center text-xs font-semibold text-gray-500">{block.caption}</div>
+        ) : null}
+      </div>
+    );
+  }
+  if (!text) return null;
+  const shown = compact && text.length > 260 ? `${text.slice(0, 260).trim()}...` : text;
+  return <RichArticleText as="p" text={shown} className="whitespace-pre-wrap text-base font-semibold leading-8 text-gray-800" />;
+}
+
+function RichArticleText({ text = '', as: Tag = 'span', className = '' }) {
+  const tokens = tokenizeRichText(text);
+  return (
+    <Tag className={className} dir="rtl">
+      {tokens.map((token, index) => {
+        if (token.type === 'url') {
+          return (
+            <span key={`u-${index}`}>
+              <a
+                href={token.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(event) => event.stopPropagation()}
+                className="font-black text-blue-700 underline decoration-blue-400 underline-offset-2 transition hover:text-blue-900"
+                dir="ltr"
+              >
+                {token.value}
+              </a>
+              {token.suffix ? <span>{token.suffix}</span> : null}
+            </span>
+          );
+        }
+        if (token.type === 'mention') {
+          return (
+            <span key={`m-${index}`}>
+              <Link
+                href={`/${token.handle}`}
+                onClick={(event) => event.stopPropagation()}
+                className="font-black text-blue-700 underline decoration-blue-400 underline-offset-2 transition hover:text-blue-900"
+              >
+                {token.value}
+              </Link>
+              {token.suffix ? <span>{token.suffix}</span> : null}
+            </span>
+          );
+        }
+        if (token.type === 'hashtag') {
+          return (
+            <span key={`h-${index}`}>
+              <Link
+                href={`/interface?tag=${encodeURIComponent(token.tag)}`}
+                onClick={(event) => event.stopPropagation()}
+                className="font-black text-blue-700 underline decoration-blue-400 underline-offset-2 transition hover:text-blue-900"
+              >
+                {token.value}
+              </Link>
+              {token.suffix ? <span>{token.suffix}</span> : null}
+            </span>
+          );
+        }
+        return <span key={`t-${index}`}>{token.value}</span>;
+      })}
+    </Tag>
   );
 }
 
