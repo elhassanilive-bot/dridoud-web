@@ -35,6 +35,150 @@ function isVideoType(mediaType = '', mediaUrl = '') {
   return mt.includes('video') || /\.(mp4|mov|webm|m3u8)(\?|$)/.test(url);
 }
 
+function safeJsonParse(value) {
+  if (!value || typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed || (!trimmed.startsWith('{') && !trimmed.startsWith('['))) return null;
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return null;
+  }
+}
+
+function mediaToArticleBlock(media) {
+  if (!media) return null;
+  const url = media.media_url || media.thumbnail_url || media.url || media.image_url || media.video_url;
+  if (!url) return null;
+  return {
+    type: isVideoType(media.media_type, url) ? 'video' : 'image',
+    url,
+    thumbnail: media.thumbnail_url || media.thumb || url,
+    caption: media.caption || media.image_caption || '',
+  };
+}
+
+function normalizeArticleType(value = '') {
+  const raw = String(value || '').toLowerCase().replace(/[_\s-]+/g, '');
+  if (['h1', 'heading', 'title', 'mainheading', 'mainheader'].includes(raw)) return 'heading';
+  if (['h2', 'subheading', 'subtitle', 'subheader'].includes(raw)) return 'subheading';
+  if (['quote', 'blockquote'].includes(raw)) return 'quote';
+  if (['divider', 'separator', 'line', 'hr'].includes(raw)) return 'divider';
+  if (['image', 'articleimage', 'photo'].includes(raw)) return 'image';
+  if (['video', 'articlevideo'].includes(raw)) return 'video';
+  return 'paragraph';
+}
+
+function textFromArticleBlock(block = {}) {
+  return String(
+    block.text ??
+      block.content ??
+      block.title ??
+      block.value ??
+      block.body ??
+      block.caption ??
+      ''
+  ).trim();
+}
+
+function extractJsonArticleBlocks(payload, mediaQueue) {
+  const source = Array.isArray(payload)
+    ? payload
+    : payload?.blocks || payload?.articleBlocks || payload?.contentBlocks || payload?.elements || payload?.items || [];
+  if (!Array.isArray(source)) return [];
+
+  return source
+    .map((block) => {
+      if (typeof block === 'string') {
+        const text = block.trim();
+        return text ? { type: 'paragraph', text } : null;
+      }
+      const type = normalizeArticleType(block?.type || block?.kind || block?.block_type || block?.blockType);
+      const text = textFromArticleBlock(block);
+      if (type === 'divider') return { type };
+      if (type === 'image' || type === 'video') {
+        const queued = mediaQueue.shift();
+        const url =
+          block?.url ||
+          block?.media_url ||
+          block?.mediaUrl ||
+          block?.image_url ||
+          block?.imageUrl ||
+          block?.video_url ||
+          block?.videoUrl ||
+          queued?.url;
+        if (!url) return text ? { type: 'paragraph', text } : null;
+        return {
+          type,
+          url,
+          thumbnail: block?.thumbnail_url || block?.thumbnailUrl || queued?.thumbnail || url,
+          caption: block?.caption || block?.image_caption || block?.imageCaption || '',
+        };
+      }
+      return text ? { type, text } : null;
+    })
+    .filter(Boolean);
+}
+
+function extractTokenArticleBlocks(text, mediaQueue) {
+  const source = String(text || '');
+  const rx = /\[\[media:(image|video):([^\]]+)\]\]/g;
+  const blocks = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = rx.exec(source)) !== null) {
+    const before = source.slice(lastIndex, match.index).trim();
+    if (before) blocks.push(...plainTextArticleBlocks(before));
+    blocks.push({
+      type: match[1],
+      url: match[2],
+      thumbnail: match[2],
+      caption: '',
+    });
+    const matchedMediaIndex = mediaQueue.findIndex((m) => m.url === match[2]);
+    if (matchedMediaIndex >= 0) mediaQueue.splice(matchedMediaIndex, 1);
+    lastIndex = rx.lastIndex;
+  }
+
+  const after = source.slice(lastIndex).trim();
+  if (after) blocks.push(...plainTextArticleBlocks(after));
+  return blocks;
+}
+
+function plainTextArticleBlocks(text) {
+  const lines = String(text || '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  if (!lines.length) return [];
+
+  return lines.map((line) => {
+    if (/^(-{3,}|—{3,}|_{3,})$/.test(line)) return { type: 'divider' };
+    if (line.startsWith('>')) return { type: 'quote', text: line.replace(/^>\s*/, '').trim() };
+    if (line.startsWith('## ')) return { type: 'subheading', text: line.slice(3).trim() };
+    if (line.startsWith('# ')) return { type: 'heading', text: line.slice(2).trim() };
+    return { type: 'paragraph', text: line };
+  });
+}
+
+function buildArticleBlocks(post) {
+  const mediaQueue = (post?.post_media || [])
+    .slice()
+    .sort((a, b) => (a?.order_index ?? 0) - (b?.order_index ?? 0))
+    .map(mediaToArticleBlock)
+    .filter(Boolean);
+  const rawText = postText(post);
+  const json = safeJsonParse(rawText);
+  const blocks = json
+    ? extractJsonArticleBlocks(json, mediaQueue)
+    : extractTokenArticleBlocks(rawText, mediaQueue);
+
+  if (!blocks.length && rawText) blocks.push(...plainTextArticleBlocks(rawText));
+  blocks.push(...mediaQueue);
+  return blocks;
+}
+
 async function findProfile(client, rawUsername) {
   const clean = normalizeUsername(rawUsername);
   if (!clean) return null;
@@ -127,7 +271,7 @@ export default function PublicProfilePage() {
           getCount(client, 'posts', [['user_id', uid]], ['channel_id', 'group_id']),
           client
             .from('posts')
-            .select('id,user_id,content,description,created_at,background_style,is_sensitive,media_type,privacy,post_media(media_url,thumbnail_url,media_type)')
+            .select('id,user_id,content,description,created_at,background_style,is_sensitive,media_type,privacy,post_media(media_url,thumbnail_url,media_type,order_index)')
             .eq('user_id', uid)
             .neq('privacy', 'private')
             .is('channel_id', null)
@@ -806,10 +950,8 @@ function ProfilePostCard({
   const [expanded, setExpanded] = useState(false);
   const text = postText(post);
   const media = post?.post_media || [];
-  const first = media[0] || null;
-  const isVideo = first ? isVideoType(first.media_type, first.media_url) : false;
+  const articleBlocks = buildArticleBlocks(post);
   const longText = text.length > 260;
-  const shownText = longText && !expanded ? `${text.slice(0, 260).trim()}...` : text;
   const mentionMatches = Array.from(new Set((text.match(/@([\w\u0600-\u06FF.]{2,})/g) || []).map((m) => m.replace('@', ''))));
   const shownMentions = mentionMatches.slice(0, 4);
   const extraMentions = Math.max(0, mentionMatches.length - shownMentions.length);
@@ -855,9 +997,14 @@ function ProfilePostCard({
         </div>
       </div>
 
-      {text ? (
+      {articleBlocks.length ? (
         <div className="px-4 pb-3">
-          <p className="text-sm leading-7 text-slate-800">{shownText}</p>
+          <ArticleContentPreview
+            blocks={articleBlocks}
+            expanded={expanded}
+            onToggleExpanded={() => setExpanded((v) => !v)}
+            postId={post.id}
+          />
           {shownMentions.length ? (
             <div className="mt-2 flex flex-wrap gap-2">
               {shownMentions.map((u) => (
@@ -868,18 +1015,7 @@ function ProfilePostCard({
               {extraMentions > 0 ? <span className="inline-flex items-center text-xs font-black text-blue-700">عرض المزيد من الإشارات (+{extraMentions})</span> : null}
             </div>
           ) : null}
-          {longText ? <button type="button" onClick={() => setExpanded((v) => !v)} className="mt-1 text-xs font-black text-blue-700 hover:underline">{expanded ? 'عرض أقل' : 'عرض المزيد'}</button> : null}
         </div>
-      ) : null}
-
-      {first ? (
-        <Link href={`/post/${post.id}`} className="block border-t border-slate-100 bg-black">
-          {isVideo ? (
-            <video src={first.media_url} controls className="max-h-[70vh] w-full object-contain" />
-          ) : (
-            <Image src={first.media_url || first.thumbnail_url} alt="post-media" width={1200} height={800} unoptimized className="h-auto max-h-[70vh] w-full object-contain" />
-          )}
-        </Link>
       ) : null}
 
       <div className="border-t border-slate-100 px-4 py-2">
@@ -905,6 +1041,69 @@ function ProfilePostCard({
       </div>
     </article>
   );
+}
+
+function ArticleContentPreview({ blocks = [], expanded = false, onToggleExpanded, postId }) {
+  const visibleLimit = 4;
+  const hasLongParagraph = blocks.some((block) => String(block?.text || '').length > 260);
+  const shouldClip = blocks.length > visibleLimit || hasLongParagraph;
+  const visibleBlocks = shouldClip && !expanded ? blocks.slice(0, visibleLimit) : blocks;
+
+  return (
+    <div className="space-y-4 text-right" dir="rtl">
+      {visibleBlocks.map((block, index) => (
+        <ArticleBlock key={`${block.type}-${index}-${block.url || block.text || ''}`} block={block} postId={postId} compact={!expanded && index === visibleBlocks.length - 1 && hasLongParagraph} />
+      ))}
+      {shouldClip ? (
+        <button
+          type="button"
+          onClick={onToggleExpanded}
+          className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1.5 text-xs font-black text-blue-700 transition hover:bg-blue-100 hover:underline"
+        >
+          {expanded ? 'عرض أقل' : 'عرض المقال كاملًا'}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+function ArticleBlock({ block, postId, compact = false }) {
+  const text = String(block?.text || '').trim();
+  if (block?.type === 'divider') {
+    return <div className="mx-auto h-px w-2/3 bg-gradient-to-l from-transparent via-slate-300 to-transparent" />;
+  }
+  if (block?.type === 'heading') {
+    return <h2 className="text-2xl font-black leading-[1.55] text-slate-950">{text}</h2>;
+  }
+  if (block?.type === 'subheading') {
+    return <h3 className="text-xl font-extrabold leading-[1.6] text-slate-900">{text}</h3>;
+  }
+  if (block?.type === 'quote') {
+    return (
+      <blockquote className="rounded-2xl border-r-4 border-rose-600 bg-rose-50 px-4 py-3 text-base font-bold leading-8 text-rose-950">
+        {text}
+      </blockquote>
+    );
+  }
+  if (block?.type === 'image' || block?.type === 'video') {
+    const mediaUrl = block.url || block.thumbnail;
+    if (!mediaUrl) return null;
+    return (
+      <Link href={`/post/${postId}`} className="block overflow-hidden rounded-2xl border border-slate-100 bg-black">
+        {block.type === 'video' ? (
+          <video src={mediaUrl} controls className="max-h-[72vh] w-full object-contain" preload="metadata" />
+        ) : (
+          <Image src={mediaUrl} alt={block.caption || 'post-media'} width={1200} height={800} unoptimized className="h-auto max-h-[72vh] w-full object-contain" />
+        )}
+        {block.caption ? (
+          <div className="bg-white px-3 py-2 text-center text-xs font-semibold text-slate-500">{block.caption}</div>
+        ) : null}
+      </Link>
+    );
+  }
+  if (!text) return null;
+  const shown = compact && text.length > 260 ? `${text.slice(0, 260).trim()}...` : text;
+  return <p className="whitespace-pre-wrap text-base font-semibold leading-8 text-slate-800">{shown}</p>;
 }
 function VerifiedBadge() {
   return (
