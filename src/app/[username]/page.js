@@ -21,6 +21,45 @@ function normalizeHandle(raw = '') {
   return String(raw).replace(/^@+/, '').replace(/[^\w\u0600-\u06FF.]/g, '').trim();
 }
 
+function ProfilePageSkeleton() {
+  return (
+    <div className="mx-auto max-w-5xl px-4 py-8" dir="rtl" aria-busy="true" aria-label="loading">
+      <div className="animate-pulse overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div className="h-56 bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100" />
+        <div className="-mt-16 flex flex-col items-center px-6 pb-8">
+          <div className="h-32 w-32 rounded-full border-4 border-white bg-slate-200" />
+          <div className="mt-5 h-6 w-44 rounded-full bg-slate-200" />
+          <div className="mt-3 h-4 w-28 rounded-full bg-slate-100" />
+          <div className="mt-6 h-4 w-3/4 rounded-full bg-slate-100" />
+          <div className="mt-3 h-4 w-1/2 rounded-full bg-slate-100" />
+          <div className="mt-7 grid w-full max-w-xl grid-cols-3 gap-3">
+            <div className="h-16 rounded-2xl bg-slate-100" />
+            <div className="h-16 rounded-2xl bg-slate-100" />
+            <div className="h-16 rounded-2xl bg-slate-100" />
+          </div>
+        </div>
+      </div>
+      <div className="mt-5 space-y-4">
+        {[0, 1].map((item) => (
+          <div key={item} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="animate-pulse space-y-4">
+              <div className="flex items-center justify-end gap-3">
+                <div className="space-y-2">
+                  <div className="h-4 w-36 rounded-full bg-slate-200" />
+                  <div className="h-3 w-24 rounded-full bg-slate-100" />
+                </div>
+                <div className="h-11 w-11 rounded-full bg-slate-200" />
+              </div>
+              <div className="h-4 w-10/12 rounded-full bg-slate-100" />
+              <div className="h-52 rounded-2xl bg-slate-100" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function formatAgo(dateStr) {
   if (!dateStr) return 'الآن';
   const d = new Date(dateStr);
@@ -621,7 +660,7 @@ export default function PublicProfilePage() {
   }
 
   if (loading) {
-    return <div className="mx-auto max-w-5xl px-4 py-16 text-center text-gray-600" dir="rtl">جاري تحميل الملف الشخصي...</div>;
+    return <ProfilePageSkeleton />;
   }
 
   if (error || !profile) {

@@ -104,6 +104,302 @@ function extractMediaTokens(text = '') {
   return { text: cleaned, media };
 }
 
+function safeJsonParse(value) {
+  if (!value || typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed || (!trimmed.startsWith('{') && !trimmed.startsWith('['))) return null;
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return null;
+  }
+}
+
+function normalizeArticleType(value = '') {
+  const raw = String(value || '').toLowerCase();
+  if (['heading', 'title', 'h1', 'main_heading', 'main-title'].includes(raw)) return 'heading';
+  if (['subheading', 'subtitle', 'h2', 'secondary_heading', 'sub-title'].includes(raw)) return 'subheading';
+  if (['quote', 'blockquote'].includes(raw)) return 'quote';
+  if (['divider', 'separator', 'hr'].includes(raw)) return 'divider';
+  if (['image', 'photo', 'media_image', 'article_image'].includes(raw)) return 'image';
+  if (['video', 'media_video', 'article_video'].includes(raw)) return 'video';
+  return 'paragraph';
+}
+
+function textFromArticleBlock(block = {}) {
+  return (
+    block.text ||
+    block.content ||
+    block.value ||
+    block.body ||
+    block.title ||
+    block.caption ||
+    ''
+  );
+}
+
+function plainTextArticleBlocks(text = '') {
+  return String(text || '')
+    .split(/\n{2,}/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => ({ type: 'paragraph', text: part }));
+}
+
+function mediaToArticleBlock(item = {}) {
+  const url = item.full || item.url || item.media_url || item.thumbnail_url || item.thumb;
+  if (!url) return null;
+  return {
+    type: item.type === 'video' ? 'video' : 'image',
+    url,
+    thumbnail: item.thumb || item.thumbnail || url,
+    caption: item.caption || '',
+  };
+}
+
+function buildArticleBlocks(post) {
+  const mediaQueue = (post?.media || []).map(mediaToArticleBlock).filter(Boolean);
+  const stored = Array.isArray(post?.content_blocks)
+    ? post.content_blocks
+    : safeJsonParse(post?.content_blocks);
+
+  if (Array.isArray(stored) && stored.length) {
+    const blocks = stored
+      .map((block) => {
+        const type = normalizeArticleType(block?.type);
+        if (type === 'divider') return { type: 'divider' };
+        if (type === 'image') {
+          return {
+            type: 'image',
+            url: block?.url || block?.media_url || block?.mediaUrl || block?.image_url || block?.imageUrl || block?.thumbnail || block?.thumbnail_url,
+            thumbnail: block?.thumbnail || block?.thumbnail_url || block?.url || block?.media_url || block?.mediaUrl || block?.image_url || block?.imageUrl,
+            caption: block?.caption || block?.alt || block?.description || '',
+          };
+        }
+        if (type === 'video') {
+          return {
+            type: 'video',
+            url: block?.url || block?.media_url || block?.mediaUrl || block?.video_url || block?.videoUrl,
+            thumbnail: block?.thumbnail || block?.thumbnail_url || '',
+            caption: block?.caption || block?.alt || block?.description || '',
+          };
+        }
+        return { type, text: textFromArticleBlock(block) };
+      })
+      .filter((block) => block.type === 'divider' || block.url || String(block.text || '').trim());
+    return blocks.length ? blocks : mediaQueue;
+  }
+
+  const rawText = post?.content || post?.description || '';
+  const blocks = plainTextArticleBlocks(rawText);
+  blocks.push(...mediaQueue);
+  return blocks;
+}
+
+function tokenizeRichText(text = '') {
+  const source = String(text || '');
+  const tokens = [];
+  const richPattern = /\[([^\]]+)\]\(([^)\s]+)\)|(https?:\/\/[^\s،,.!?:;"')\]]+|www\.[^\s،,.!?:;"')\]]+|[a-z0-9.-]+\.[a-z]{2,}(?:\/[^\s،,.!?:;"')\]]*)?)|(@[\w\u0600-\u06FF.]+)|(#[\w\u0600-\u06FF]+)/giu;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = richPattern.exec(source)) !== null) {
+    if (match.index > lastIndex) {
+      tokens.push({ type: 'text', value: source.slice(lastIndex, match.index) });
+    }
+
+    if (match[1] && match[2]) {
+      tokens.push({ type: 'url', value: match[1], href: normalizeExternalUrl(match[2]) });
+    } else if (match[3]) {
+      tokens.push({ type: 'url', value: match[3], href: normalizeExternalUrl(match[3]) });
+    } else if (match[4]) {
+      const handle = normalizeHandle(match[4]);
+      tokens.push(handle ? { type: 'mention', value: match[4], handle } : { type: 'text', value: match[4] });
+    } else if (match[5]) {
+      const tag = match[5].replace(/^#+/, '').replace(/[^\w\u0600-\u06FF]/g, '').trim();
+      tokens.push(tag ? { type: 'hashtag', value: match[5], tag } : { type: 'text', value: match[5] });
+    }
+
+    lastIndex = richPattern.lastIndex;
+  }
+
+  if (lastIndex < source.length) tokens.push({ type: 'text', value: source.slice(lastIndex) });
+  return tokens;
+}
+
+function normalizeExternalUrl(value = '') {
+  const url = String(value || '').trim();
+  if (!url) return '';
+  if (/^https?:\/\//i.test(url)) return url;
+  if (/^www\./i.test(url)) return `https://${url}`;
+  return url;
+}
+
+function RichArticleText({ text = '', className = '' }) {
+  return (
+    <p className={className} dir="rtl">
+      {tokenizeRichText(text).map((part, idx) => {
+        if (part.type === 'url') {
+          return (
+          <a
+            key={`${part.value}-${idx}`}
+            href={part.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(event) => event.stopPropagation()}
+            className="font-black text-blue-700 underline decoration-blue-400 underline-offset-2 transition hover:text-blue-900"
+            dir="ltr"
+          >
+            {part.value}
+          </a>
+          );
+        }
+        if (part.type === 'mention') {
+          return (
+            <Link
+              key={`m-${idx}`}
+              href={`/${part.handle}`}
+              onClick={(event) => event.stopPropagation()}
+              className="font-black text-blue-700 underline decoration-blue-400 underline-offset-2 transition hover:text-blue-900"
+            >
+              {part.value}
+            </Link>
+          );
+        }
+        if (part.type === 'hashtag') {
+          return (
+            <Link
+              key={`h-${idx}`}
+              href={`/interface?tag=${encodeURIComponent(part.tag)}`}
+              onClick={(event) => event.stopPropagation()}
+              className="font-black text-blue-700 underline decoration-blue-400 underline-offset-2 transition hover:text-blue-900"
+            >
+              {part.value}
+            </Link>
+          );
+        }
+        return <span key={`txt-${idx}`}>{part.value}</span>;
+      })}
+    </p>
+  );
+}
+
+function ArticleBlock({ block, index }) {
+  if (!block) return null;
+  if (block.type === 'divider') {
+    return (
+      <div className="py-2" aria-hidden="true">
+        <div className="mx-auto h-px w-28 rounded-full bg-gradient-to-l from-transparent via-red-200 to-transparent" />
+      </div>
+    );
+  }
+
+  if (block.type === 'image') {
+    if (!block.url) return null;
+    return (
+      <figure className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
+        <img src={block.url} alt={block.caption || `article-image-${index}`} className="max-h-[720px] w-full object-contain" />
+        {block.caption ? (
+          <figcaption className="border-t border-gray-100 px-4 py-2 text-center text-xs font-bold text-gray-500">
+            {block.caption}
+          </figcaption>
+        ) : null}
+      </figure>
+    );
+  }
+
+  if (block.type === 'video') {
+    if (!block.url) return null;
+    return (
+      <figure className="overflow-hidden rounded-3xl border border-gray-100 bg-black shadow-sm">
+        <video src={block.url} poster={block.thumbnail || undefined} controls className="max-h-[720px] w-full bg-black object-contain" />
+        {block.caption ? (
+          <figcaption className="bg-white px-4 py-2 text-center text-xs font-bold text-gray-500">
+            {block.caption}
+          </figcaption>
+        ) : null}
+      </figure>
+    );
+  }
+
+  const text = String(block.text || '').trim();
+  if (!text) return null;
+
+  if (block.type === 'heading') {
+    return (
+      <RichArticleText
+        text={text}
+        className="whitespace-pre-wrap text-center text-3xl font-black leading-[1.55] text-gray-950 sm:text-4xl"
+      />
+    );
+  }
+
+  if (block.type === 'subheading') {
+    return (
+      <RichArticleText
+        text={text}
+        className="whitespace-pre-wrap text-right text-2xl font-black leading-[1.55] text-gray-900 sm:text-3xl"
+      />
+    );
+  }
+
+  if (block.type === 'quote') {
+    return (
+      <blockquote className="rounded-3xl border-r-4 border-red-500 bg-red-50/70 px-5 py-4 text-right shadow-sm">
+        <RichArticleText text={text} className="whitespace-pre-wrap text-xl font-extrabold leading-[1.8] text-gray-900" />
+      </blockquote>
+    );
+  }
+
+  return (
+    <RichArticleText
+      text={text}
+      className="whitespace-pre-wrap text-right text-lg font-semibold leading-[1.9] text-gray-800 sm:text-xl"
+    />
+  );
+}
+
+function ArticleContent({ blocks = [], className = '' }) {
+  const visibleBlocks = (blocks || []).filter(Boolean);
+  if (!visibleBlocks.length) return null;
+  return (
+    <div className={['space-y-5', className].filter(Boolean).join(' ')}>
+      {visibleBlocks.map((block, index) => (
+        <ArticleBlock key={`${block.type}-${index}-${block.url || block.text || 'divider'}`} block={block} index={index} />
+      ))}
+    </div>
+  );
+}
+
+function PostDetailsSkeleton() {
+  return (
+    <main className="mx-auto max-w-4xl px-4 pb-24 pt-6 text-right" dir="rtl" aria-busy="true" aria-label="loading">
+      <article className="overflow-hidden rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
+        <div className="animate-pulse space-y-6">
+          <div className="flex items-center justify-end gap-3">
+            <div className="space-y-2">
+              <div className="h-5 w-40 rounded-full bg-gray-200" />
+              <div className="h-4 w-24 rounded-full bg-gray-100" />
+            </div>
+            <div className="h-12 w-12 rounded-full bg-gray-200" />
+          </div>
+          <div className="space-y-3">
+            <div className="mr-auto h-5 w-11/12 rounded-full bg-gray-100" />
+            <div className="mr-auto h-5 w-9/12 rounded-full bg-gray-100" />
+            <div className="mr-auto h-5 w-7/12 rounded-full bg-gray-100" />
+          </div>
+          <div className="h-[420px] rounded-3xl bg-gradient-to-br from-gray-100 via-gray-50 to-gray-100" />
+          <div className="grid grid-cols-3 gap-2">
+            <div className="h-12 rounded-2xl bg-gray-100" />
+            <div className="h-12 rounded-2xl bg-gray-100" />
+            <div className="h-12 rounded-2xl bg-gray-100" />
+          </div>
+        </div>
+      </article>
+    </main>
+  );
+}
+
 function ExpandableText({
   text = '',
   maxChars = 360,
@@ -373,7 +669,7 @@ export default function PostDetailsClient({ postId }) {
         const { data: row, error: postErr } = await client
           .from('posts')
           .select(
-            'id,user_id,content,description,media_type,created_at,privacy,is_sensitive,background_style,is_repost,original_post_id,allow_comments'
+            'id,user_id,content,description,content_blocks,media_type,created_at,privacy,is_sensitive,background_style,is_repost,original_post_id,allow_comments'
           )
           .eq('id', safePostId)
           .maybeSingle();
@@ -398,7 +694,7 @@ export default function PostDetailsClient({ postId }) {
         if (row?.is_repost && row?.original_post_id) {
           const { data: orgRow } = await client
             .from('posts')
-            .select('id,user_id,content,description,media_type,created_at,privacy,is_sensitive,background_style')
+            .select('id,user_id,content,description,content_blocks,media_type,created_at,privacy,is_sensitive,background_style')
             .eq('id', row.original_post_id)
             .maybeSingle();
 
@@ -502,6 +798,10 @@ export default function PostDetailsClient({ postId }) {
   const username = post?.profiles?.username || '';
   const authorHandle = normalizeHandle(username) || post?.user_id || 'user';
   const bgStyle = useMemo(() => parseBackgroundStyle(post?.background_style), [post]);
+  const articleBlocks = useMemo(() => buildArticleBlocks(post), [post]);
+  const originalArticleBlocks = useMemo(() => buildArticleBlocks(originalPost), [originalPost]);
+  const hasArticleMedia = articleBlocks.some((block) => block.type === 'image' || block.type === 'video');
+  const originalHasArticleMedia = originalArticleBlocks.some((block) => block.type === 'image' || block.type === 'video');
 
   const byParent = useMemo(() => {
     const grouped = {};
@@ -756,7 +1056,7 @@ export default function PostDetailsClient({ postId }) {
   }
 
   if (loading) {
-    return <main className="mx-auto max-w-4xl px-4 pb-10 pt-8 text-right">جاري تحميل المنشور...</main>;
+    return <PostDetailsSkeleton />;
   }
 
   if (error || !post) {
@@ -794,12 +1094,7 @@ export default function PostDetailsClient({ postId }) {
               <p className="text-sm font-bold text-gray-600">إعادة نشر</p>
               {text ? (
                 <div className="rounded-2xl p-4" style={textContainerStyle(bgStyle) || undefined}>
-                  <ExpandableText
-                    text={text}
-                    maxChars={540}
-                    className="whitespace-pre-wrap text-2xl font-black leading-[1.65]"
-                    buttonClassName="text-sm text-current/90"
-                  />
+                  <ArticleContent blocks={plainTextArticleBlocks(text)} />
                 </div>
               ) : null}
 
@@ -814,28 +1109,24 @@ export default function PostDetailsClient({ postId }) {
                   </Link>
                 </div>
                 <div className="rounded-2xl p-4" style={textContainerStyle(parseBackgroundStyle(originalPost?.background_style)) || undefined}>
-                  <ExpandableText
-                    text={normalizeText(originalPost?.content || originalPost?.description || 'منشور بدون نص')}
-                    maxChars={540}
-                    className="whitespace-pre-wrap text-2xl font-black leading-[1.65] text-current"
-                    buttonClassName="text-sm text-current/90"
+                  <ArticleContent
+                    blocks={
+                      originalArticleBlocks.length
+                        ? originalArticleBlocks
+                        : plainTextArticleBlocks(normalizeText(originalPost?.content || originalPost?.description || 'منشور بدون نص'))
+                    }
                   />
                 </div>
-                <MediaDeck media={originalPost?.media || []} isSensitive={!!originalPost?.is_sensitive} />
+                {!originalHasArticleMedia ? <MediaDeck media={originalPost?.media || []} isSensitive={!!originalPost?.is_sensitive} /> : null}
               </div>
             </div>
           ) : (
             <div className="rounded-2xl p-4" style={textContainerStyle(bgStyle) || undefined}>
-              <ExpandableText
-                text={text}
-                maxChars={540}
-                className="whitespace-pre-wrap text-2xl font-black leading-[1.65] text-current"
-                buttonClassName="text-sm text-current/90"
-              />
+              <ArticleContent blocks={articleBlocks.length ? articleBlocks : plainTextArticleBlocks(text)} />
             </div>
           )}
 
-          {!post?.is_repost ? <MediaDeck media={post?.media || []} isSensitive={!!post?.is_sensitive} /> : null}
+          {!post?.is_repost && !hasArticleMedia ? <MediaDeck media={post?.media || []} isSensitive={!!post?.is_sensitive} /> : null}
 
           <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-3">
             <div className="mb-2 flex items-center justify-between text-xs font-semibold text-gray-600">
