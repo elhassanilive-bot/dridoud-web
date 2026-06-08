@@ -142,12 +142,12 @@ export default function Navbar() {
           title: copy.columns.app,
           items: [
             { href: '/interface?view=home', label: copy.links.home, icon: HomeIcon },
+            { href: '/interface?view=notifications', label: copy.links.notifications, icon: BellIcon },
+            { href: '/interface?view=chat', label: copy.links.chat, icon: MailIcon },
             { href: '/interface?view=reels', label: copy.links.reels, icon: ReelIcon },
             { href: '/interface?view=groups', label: copy.links.groups, icon: GroupIcon },
             { href: '/interface?view=channels', label: copy.links.channels, icon: ChannelIcon },
             { href: '/interface?view=explore', label: copy.links.discover, icon: SearchIcon },
-            { href: '/interface?view=chat', label: copy.links.chat, icon: MailIcon },
-            { href: '/interface?view=notifications', label: copy.links.notifications, icon: BellIcon },
           ],
         },
         {

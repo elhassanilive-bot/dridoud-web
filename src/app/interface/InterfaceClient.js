@@ -7,12 +7,12 @@ import { getSupabaseClient } from '@/lib/supabase/client';
 
 const SECTION_LABELS = [
   { key: 'home', label: 'الرئيسية' },
+  { key: 'notifications', label: 'الإشعارات' },
+  { key: 'chat', label: 'الدردشة' },
   { key: 'reels', label: 'الريلز' },
   { key: 'groups', label: 'المجموعات' },
   { key: 'channels', label: 'القنوات' },
   { key: 'explore', label: 'استكشاف' },
-  { key: 'chat', label: 'الدردشة' },
-  { key: 'notifications', label: 'الإشعارات' },
 ];
 
 const SUGGESTED_FILTERS = [
@@ -2248,7 +2248,7 @@ export default function InterfaceClient() {
                   active === s.key ? 'bg-red-700 text-white shadow-lg shadow-red-700/15' : 'bg-gray-50 text-gray-800 hover:bg-gray-100',
                 ].join(' ')}
               >
-                <span className="relative inline-flex">
+                <span className={['relative inline-flex', active === s.key ? 'text-white [&_svg]:text-white' : 'text-gray-900'].join(' ')}>
                   <SectionIcon section={s.key} />
                   {s.key === 'notifications' && unreadNotificationsCount > 0 ? (
                     <span className="absolute -right-2 -top-2 min-w-5 rounded-full bg-red-600 px-1 text-center text-[10px] font-black leading-5 text-white ring-2 ring-white">
