@@ -189,6 +189,22 @@ async function uploadInterfaceImage(file, folder = 'interface') {
   return data?.publicUrl || '';
 }
 
+async function uploadInterfaceMedia(file, folder = 'interface') {
+  if (!file) return '';
+  const client = await getSupabaseClient();
+  if (!client) throw new Error('supabase_not_configured');
+  const safeName = String(file.name || 'media')
+    .replace(/[^\w.\-]+/g, '_')
+    .slice(-90);
+  const path = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}_${safeName}`;
+  const { error } = await client.storage
+    .from('post-media')
+    .upload(path, file, { upsert: false, contentType: file.type || 'application/octet-stream' });
+  if (error) throw error;
+  const { data } = client.storage.from('post-media').getPublicUrl(path);
+  return data?.publicUrl || '';
+}
+
 function safeJsonParse(value) {
   if (!value || typeof value !== 'string') return null;
   const trimmed = value.trim();
@@ -553,6 +569,7 @@ export default function InterfaceClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [active, setActive] = useState('home');
+  const [showSiteNotice, setShowSiteNotice] = useState(true);
   const [homeTab, setHomeTab] = useState('latest'); // latest | suggested
   const [suggestedFilter, setSuggestedFilter] = useState('following');
   const [selectedGroupId, setSelectedGroupId] = useState(null);
@@ -611,8 +628,7 @@ export default function InterfaceClient() {
 
   function changeSection(sectionKey) {
     setActive(sectionKey);
-    const suffix = sectionKey === 'home' ? '' : `?view=${encodeURIComponent(sectionKey)}`;
-    router.replace(`/interface${suffix}`, { scroll: false });
+    router.replace(`/interface?view=${encodeURIComponent(sectionKey)}`, { scroll: false });
   }
 
   function selectGroup(groupId) {
@@ -2183,19 +2199,106 @@ export default function InterfaceClient() {
   );
 
   return (
-    <div className="mx-auto max-w-7xl px-3 pb-10 pt-6 sm:px-5 lg:px-8 text-right [unicode-bidi:plaintext]" dir="rtl">
-      <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 shadow-sm">
-        <h1 className="text-right text-2xl font-black text-gray-900">واجهة دريدود</h1>
-        <div className="mt-2 rounded-xl border border-amber-300 bg-amber-100/70 px-3 py-2 text-xs font-semibold text-amber-900" dir="rtl">
-          <p className="text-right leading-6 [unicode-bidi:plaintext]">
-            <span aria-hidden="true" className="ml-2 inline-block align-middle text-sm">⚠️</span>
-            <span className="align-middle">تنبيه مهم: موقع دريدود قيد التطوير والتحسين حالياً، وما زلنا نعمل على إكمال الإصلاحات وتقديم تجربة أسرع وأفضل. شكراً لصبركم ودعمكم، القادم أجمل بإذن الله.</span>
-          </p>
+    <div className={['mx-auto px-3 pb-10 pt-6 text-right [unicode-bidi:plaintext] sm:px-5 lg:px-8', active === 'chat' ? 'max-w-[1800px]' : 'max-w-7xl'].join(' ')} dir="rtl">
+      {showSiteNotice ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/20 px-4 backdrop-blur-[2px]" dir="rtl">
+          <div className="w-full max-w-2xl rounded-[2rem] border border-amber-200 bg-white p-6 text-right shadow-2xl shadow-amber-900/20 sm:p-8">
+            <div className="flex items-start gap-4">
+              <button
+                type="button"
+                onClick={() => setShowSiteNotice(false)}
+                className="mt-0.5 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gray-100 text-2xl font-black text-gray-600 transition hover:bg-gray-200 hover:text-gray-950"
+                aria-label="إغلاق التنبيه"
+              >
+                ×
+              </button>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-end gap-3 text-xl font-black text-amber-900">
+                  <span>تنبيه مهم</span>
+                  <span aria-hidden="true" className="text-2xl">⚠️</span>
+                </div>
+                <p className="mt-4 text-base font-bold leading-8 text-amber-800">
+                  موقع دريدود قيد التطوير والتحسين حالياً، وما زلنا نعمل على إكمال الإصلاحات وتقديم تجربة أسرع وأفضل. شكراً لصبركم ودعمكم.
+                </p>
+                <div className="mt-6 flex justify-start">
+                  <button
+                    type="button"
+                    onClick={() => setShowSiteNotice(false)}
+                    className="rounded-2xl bg-amber-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-amber-500/20 transition hover:bg-amber-600"
+                  >
+                    فهمت
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+      ) : null}
+
+      <div className="mb-4 space-y-3 lg:hidden" dir="rtl">
+        <div className="rounded-3xl border border-gray-200 bg-white p-2 shadow-sm">
+          <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
+            {SECTION_LABELS.map((s) => (
+              <button
+                key={s.key}
+                type="button"
+                onClick={() => changeSection(s.key)}
+                className={[
+                  'relative inline-flex min-w-max items-center gap-2 rounded-2xl px-4 py-3 text-sm font-black transition',
+                  active === s.key ? 'bg-red-700 text-white shadow-lg shadow-red-700/15' : 'bg-gray-50 text-gray-800 hover:bg-gray-100',
+                ].join(' ')}
+              >
+                <span className="relative inline-flex">
+                  <SectionIcon section={s.key} />
+                  {s.key === 'notifications' && unreadNotificationsCount > 0 ? (
+                    <span className="absolute -right-2 -top-2 min-w-5 rounded-full bg-red-600 px-1 text-center text-[10px] font-black leading-5 text-white ring-2 ring-white">
+                      {unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount}
+                    </span>
+                  ) : null}
+                  {s.key === 'chat' && chatUnreadCount > 0 ? (
+                    <span className="absolute -right-2 -top-2 min-w-5 rounded-full bg-red-600 px-1 text-center text-[10px] font-black leading-5 text-white ring-2 ring-white">
+                      {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
+                    </span>
+                  ) : null}
+                </span>
+                <span>{s.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {active !== 'chat' ? (
+          <details className="rounded-3xl border border-gray-200 bg-white p-3 shadow-sm">
+            <summary className="flex cursor-pointer list-none items-center justify-between rounded-2xl bg-gray-50 px-4 py-3 text-sm font-black text-gray-900">
+              <span>الإعدادات والدعم</span>
+              <ChevronLeftIcon />
+            </summary>
+            <div className="mt-3 space-y-3">
+              <SettingsSidebar
+                posts={feedPosts}
+                me={me}
+                commentsByPost={commentsByPost}
+                likeCounts={likeCounts}
+              />
+              <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-2">
+                <h3 className="px-2 pb-2 text-sm font-black text-gray-900">المعلومات والدعم</h3>
+                <div className="grid grid-cols-1 gap-2">
+                  <Link href="/privacy" className="rounded-xl bg-white px-3 py-2 text-sm font-bold text-gray-800">سياسة الخصوصية</Link>
+                  <Link href="/terms" className="rounded-xl bg-white px-3 py-2 text-sm font-bold text-gray-800">الشروط والأحكام</Link>
+                  <Link href="/contact" className="rounded-xl bg-white px-3 py-2 text-sm font-bold text-gray-800">اتصل بنا</Link>
+                  <Link href="/faq" className="rounded-xl bg-white px-3 py-2 text-sm font-bold text-gray-800">الأسئلة الشائعة</Link>
+                  <Link href="/complaints" className="rounded-xl bg-white px-3 py-2 text-sm font-bold text-gray-800">شكاوى وبلاغات</Link>
+                  <Link href="/deletion" className="rounded-xl bg-white px-3 py-2 text-sm font-bold text-gray-800">طلب حذف الحساب والبيانات</Link>
+                </div>
+              </div>
+            </div>
+          </details>
+        ) : null}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12" dir="rtl">
-        <aside className="order-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm lg:order-1 lg:col-span-3 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
+      <div className={['grid grid-cols-1 gap-4', active === 'chat' ? 'lg:grid-cols-1' : 'lg:grid-cols-12'].join(' ')} dir="rtl">
+        {active !== 'chat' ? (
+        <aside className="order-3 hidden rounded-2xl border border-gray-200 bg-white p-4 shadow-sm lg:order-1 lg:col-span-3 lg:sticky lg:top-24 lg:block lg:self-start lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
           <h2 className="mb-3 text-right text-sm font-black text-gray-900">الأقسام</h2>
           <div className="space-y-2">
             {SECTION_LABELS.map((s) => (
@@ -2257,9 +2360,10 @@ export default function InterfaceClient() {
             </details>
           </div>
         </aside>
+        ) : null}
 
-        <section className="order-1 lg:col-span-6"> 
-          <CreatePostEntry />
+        <section className={['order-1', active === 'chat' ? 'lg:col-span-1' : 'lg:col-span-6'].join(' ')}>
+          {active !== 'chat' ? <CreatePostEntry /> : null}
           {loading ? (
             <ContentSkeleton />
           ) : error ? (
@@ -2288,7 +2392,8 @@ export default function InterfaceClient() {
           )}
         </section>
 
-        <aside className="order-2 lg:col-span-3 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
+        {active !== 'chat' ? (
+        <aside className="order-2 hidden lg:col-span-3 lg:sticky lg:top-24 lg:block lg:self-start lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
           <SettingsSidebar
             posts={feedPosts}
             me={me}
@@ -2296,6 +2401,7 @@ export default function InterfaceClient() {
             likeCounts={likeCounts}
           />
         </aside>
+        ) : null}
       </div>
 
       {commentModalPost ? (
@@ -2479,11 +2585,17 @@ function ChatSection({ me, profiles = [], profilesMap = {}, notify, onUnreadChan
   const [mediaUrlDraft, setMediaUrlDraft] = useState('');
   const [messageType, setMessageType] = useState('text');
   const [sending, setSending] = useState(false);
+  const [uploadingChatMedia, setUploadingChatMedia] = useState(false);
+  const [recordingVoice, setRecordingVoice] = useState(false);
   const [search, setSearch] = useState('');
   const [newChatOpen, setNewChatOpen] = useState(false);
   const [editingMessage, setEditingMessage] = useState(null);
   const [forwardingMessage, setForwardingMessage] = useState(null);
   const messagesEndRef = useRef(null);
+  const imageInputRef = useRef(null);
+  const videoInputRef = useRef(null);
+  const recorderRef = useRef(null);
+  const recordChunksRef = useRef([]);
 
   const selectedConversation = conversations.find((item) => item.id === selectedId) || null;
 
@@ -2734,6 +2846,89 @@ function ChatSection({ me, profiles = [], profilesMap = {}, notify, onUnreadChan
     } finally {
       setSending(false);
     }
+  }
+
+  async function sendMediaMessage(url, type, fallbackText = '') {
+    if (!selectedId || !me || !url) return;
+    const client = await getSupabaseClient();
+    if (!client) return;
+    const payload = {
+      chat_id: selectedId,
+      sender_id: me,
+      content: fallbackText || (type === 'image' ? 'صورة' : type === 'video' ? 'فيديو' : type === 'audio' ? 'تسجيل صوتي' : 'ملف'),
+      type,
+      media_url: url,
+    };
+    const { data, error } = await client
+      .from('messages')
+      .insert(payload)
+      .select('id,chat_id,sender_id,content,type,media_url,reply_to_message_id,created_at,edited_at')
+      .single();
+    if (error) throw error;
+    setMessages((prev) => [...prev, data]);
+    setLatestByConversation((prev) => ({ ...prev, [selectedId]: data }));
+  }
+
+  async function uploadAndSendChatFile(file, type) {
+    if (!file || !selectedId || uploadingChatMedia) return;
+    setUploadingChatMedia(true);
+    try {
+      const url = await uploadInterfaceMedia(file, `chat/${selectedId}`);
+      await sendMediaMessage(url, type);
+    } catch {
+      notify?.('تعذر إرسال الوسائط', 'error');
+    } finally {
+      setUploadingChatMedia(false);
+      if (imageInputRef.current) imageInputRef.current.value = '';
+      if (videoInputRef.current) videoInputRef.current.value = '';
+    }
+  }
+
+  async function startVoiceRecording() {
+    if (recordingVoice || uploadingChatMedia) return;
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+      notify?.('تسجيل الصوت غير مدعوم في هذا المتصفح', 'error');
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      recordChunksRef.current = [];
+      recorderRef.current = recorder;
+      recorder.ondataavailable = (event) => {
+        if (event.data?.size) recordChunksRef.current.push(event.data);
+      };
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((track) => track.stop());
+        const chunks = recordChunksRef.current;
+        recordChunksRef.current = [];
+        if (!chunks.length) return;
+        setUploadingChatMedia(true);
+        try {
+          const type = chunks[0]?.type || 'audio/webm';
+          const blob = new Blob(chunks, { type });
+          const ext = type.includes('mp4') ? 'm4a' : type.includes('ogg') ? 'ogg' : 'webm';
+          const file = new File([blob], `voice_${Date.now()}.${ext}`, { type });
+          const url = await uploadInterfaceMedia(file, `chat/${selectedId || 'voice'}`);
+          await sendMediaMessage(url, 'audio', 'تسجيل صوتي');
+        } catch {
+          notify?.('تعذر إرسال التسجيل الصوتي', 'error');
+        } finally {
+          setUploadingChatMedia(false);
+        }
+      };
+      recorder.start();
+      setRecordingVoice(true);
+    } catch {
+      notify?.('تعذر تشغيل الميكروفون', 'error');
+    }
+  }
+
+  function stopVoiceRecording() {
+    const recorder = recorderRef.current;
+    if (recorder && recorder.state !== 'inactive') recorder.stop();
+    recorderRef.current = null;
+    setRecordingVoice(false);
   }
 
   async function updateMessage() {
@@ -3041,12 +3236,16 @@ function ChatSection({ me, profiles = [], profilesMap = {}, notify, onUnreadChan
                 {messages.length ? messages.map((msg) => {
                   const mine = msg.sender_id === me;
                   const sender = chatProfiles[msg.sender_id] || profilesMap[msg.sender_id] || {};
+                  const renderMedia = !!msg.media_url || msg.type === 'location';
+                  const renderText = msg.type !== 'location' && String(msg.content || '').trim();
                   return (
                     <div key={msg.id} className={['flex', mine ? 'justify-start' : 'justify-end'].join(' ')}>
                       <div className={['max-w-[82%] rounded-3xl px-4 py-3 shadow-sm', mine ? 'bg-red-700 text-white' : 'bg-white text-gray-900'].join(' ')}>
                         {!mine ? <p className="mb-1 text-xs font-black text-gray-500">{sender.full_name || sender.username || 'مستخدم'}</p> : null}
-                        {msg.media_url ? <ChatMediaMessage message={msg} mine={mine} /> : null}
-                        <RichArticleText text={msg.content || ''} className={['whitespace-pre-wrap text-sm font-semibold leading-7', mine ? 'text-white' : 'text-gray-900'].join(' ')} />
+                        {renderMedia ? <ChatMediaMessage message={msg} mine={mine} /> : null}
+                        {renderText ? (
+                          <RichArticleText text={msg.content || ''} className={['whitespace-pre-wrap text-sm font-semibold leading-7', mine ? 'text-white' : 'text-gray-900'].join(' ')} />
+                        ) : null}
                         <div className={['mt-2 flex items-center gap-2 text-[10px] font-bold', mine ? 'text-white/70' : 'text-gray-400'].join(' ')}>
                           <span>{formatAgo(msg.created_at)}</span>
                           {msg.edited_at ? <span>تم التعديل</span> : null}
@@ -3103,31 +3302,30 @@ function ChatSection({ me, profiles = [], profilesMap = {}, notify, onUnreadChan
                     </div>
                   </div>
                 ) : null}
-                <div className="mb-2 flex flex-wrap justify-end gap-2">
-                  {['text', 'image', 'video', 'file'].map((type) => (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => setMessageType(type)}
-                      className={['rounded-full px-3 py-1.5 text-[11px] font-black', messageType === type ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-600'].join(' ')}
-                    >
-                      {type === 'text' ? 'نص' : type === 'image' ? 'صورة' : type === 'video' ? 'فيديو' : 'ملف'}
-                    </button>
-                  ))}
-                </div>
-                {messageType !== 'text' ? (
-                  <input
-                    value={mediaUrlDraft}
-                    onChange={(event) => setMediaUrlDraft(event.target.value)}
-                    placeholder="ألصق رابط الوسائط هنا..."
-                    className="mb-2 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2 text-right text-sm font-semibold outline-none focus:border-sky-400"
-                  />
+                {uploadingChatMedia || recordingVoice ? (
+                  <div className="mb-2 rounded-2xl bg-sky-50 px-3 py-2 text-xs font-black text-sky-700">
+                    {recordingVoice ? 'جاري تسجيل الصوت... اضغط على الميكروفون لإرساله' : 'جاري رفع الوسائط...'}
+                  </div>
                 ) : null}
-                <div className="flex items-end gap-2">
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={(event) => uploadAndSendChatFile(event.target.files?.[0], 'image')}
+                />
+                <input
+                  ref={videoInputRef}
+                  type="file"
+                  accept="video/*"
+                  hidden
+                  onChange={(event) => uploadAndSendChatFile(event.target.files?.[0], 'video')}
+                />
+                <div className="flex items-end gap-2 rounded-3xl border border-gray-100 bg-gray-50 p-2">
                   <button
                     type="button"
                     onClick={editingMessage ? updateMessage : sendMessage}
-                    disabled={sending || (!messageDraft.trim() && !mediaUrlDraft.trim())}
+                    disabled={sending || uploadingChatMedia || recordingVoice || (!messageDraft.trim() && !mediaUrlDraft.trim())}
                     className="rounded-2xl bg-red-700 px-5 py-3 text-sm font-black text-white hover:bg-red-800 disabled:opacity-50"
                   >
                     {editingMessage ? 'حفظ' : sending ? '...' : 'إرسال'}
@@ -3143,8 +3341,34 @@ function ChatSection({ me, profiles = [], profilesMap = {}, notify, onUnreadChan
                     }}
                     rows={1}
                     placeholder="اكتب رسالة..."
-                    className="min-h-12 flex-1 resize-none rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-right text-sm font-semibold outline-none focus:border-sky-400"
+                    className="min-h-12 flex-1 resize-none rounded-2xl border border-gray-200 bg-white px-4 py-3 text-right text-sm font-semibold outline-none focus:border-sky-400"
                   />
+                  {!editingMessage ? (
+                    <div className="flex shrink-0 items-center gap-1">
+                      <ChatToolButton
+                        label="إرسال صورة"
+                        disabled={uploadingChatMedia || recordingVoice}
+                        onClick={() => imageInputRef.current?.click()}
+                      >
+                        <ChatImageIcon />
+                      </ChatToolButton>
+                      <ChatToolButton
+                        label="إرسال فيديو"
+                        disabled={uploadingChatMedia || recordingVoice}
+                        onClick={() => videoInputRef.current?.click()}
+                      >
+                        <ChatVideoIcon />
+                      </ChatToolButton>
+                      <ChatToolButton
+                        label={recordingVoice ? 'إيقاف التسجيل وإرساله' : 'تسجيل صوتي'}
+                        active={recordingVoice}
+                        disabled={uploadingChatMedia}
+                        onClick={recordingVoice ? stopVoiceRecording : startVoiceRecording}
+                      >
+                        <ChatMicIcon />
+                      </ChatToolButton>
+                    </div>
+                  ) : null}
                 </div>
               </footer>
             </>
@@ -3163,9 +3387,87 @@ function ChatSection({ me, profiles = [], profilesMap = {}, notify, onUnreadChan
   );
 }
 
+function ChatToolButton({ label, children, onClick, disabled = false, active = false }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      disabled={disabled}
+      onClick={onClick}
+      className={[
+        'inline-flex h-11 w-11 items-center justify-center rounded-full transition',
+        active ? 'bg-red-700 text-white shadow-sm' : 'bg-white text-sky-600 hover:bg-sky-50',
+        disabled ? 'cursor-not-allowed opacity-50' : '',
+      ].join(' ')}
+    >
+      {children}
+    </button>
+  );
+}
+
+function ChatImageIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="5" width="18" height="14" rx="3" />
+      <circle cx="8" cy="10" r="1.5" />
+      <path d="m21 15-4.5-4.5L10 17l-2.5-2.5L3 19" />
+    </svg>
+  );
+}
+
+function ChatVideoIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="6" width="13" height="12" rx="3" />
+      <path d="m16 10 5-3v10l-5-3z" />
+    </svg>
+  );
+}
+
+function ChatMicIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="9" y="3" width="6" height="11" rx="3" />
+      <path d="M5 11a7 7 0 0 0 14 0" />
+      <path d="M12 18v3" />
+      <path d="M8 21h8" />
+    </svg>
+  );
+}
+
+function parseChatLocation(message) {
+  const raw = message?.media_url || message?.content || '';
+  const parsed = safeJsonParse(raw);
+  const lat = parsed?.latitude ?? parsed?.lat;
+  const lng = parsed?.longitude ?? parsed?.lng ?? parsed?.lon;
+  if (lat != null && lng != null) return { lat, lng, label: parsed?.label || parsed?.name || 'موقع جغرافي' };
+  const text = String(raw || '');
+  const match = text.match(/(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/);
+  if (match) return { lat: match[1], lng: match[2], label: 'موقع جغرافي' };
+  if (/^https?:\/\//i.test(text)) return { url: text, label: 'فتح الموقع' };
+  return null;
+}
+
 function ChatMediaMessage({ message, mine }) {
   const url = message.media_url || '';
   const type = message.type || detectMediaKind(url);
+  if (type === 'location') {
+    const location = parseChatLocation(message);
+    if (!location) return null;
+    const href = location.url || `https://www.google.com/maps?q=${encodeURIComponent(`${location.lat},${location.lng}`)}`;
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noreferrer"
+        className={['mb-2 flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-black no-underline', mine ? 'bg-white/15 text-white' : 'bg-emerald-50 text-emerald-800'].join(' ')}
+      >
+        <span>{location.label}</span>
+        <span className="text-lg">📍</span>
+      </a>
+    );
+  }
   if (!url) return null;
   if (type === 'image') {
     return <img src={url} alt="chat-media" className="mb-2 max-h-80 w-full rounded-2xl object-cover" />;
@@ -3174,16 +3476,21 @@ function ChatMediaMessage({ message, mine }) {
     return <video src={url} controls className="mb-2 max-h-80 w-full rounded-2xl bg-black object-contain" />;
   }
   if (type === 'audio') {
-    return <audio src={url} controls className="mb-2 w-full" />;
+    return (
+      <div className={['mb-2 rounded-2xl p-2', mine ? 'bg-white/15' : 'bg-gray-100'].join(' ')}>
+        <audio src={url} controls preload="metadata" className="w-full" />
+      </div>
+    );
   }
   return (
     <a
       href={url}
       target="_blank"
       rel="noreferrer"
-      className={['mb-2 block rounded-2xl px-3 py-2 text-xs font-black underline', mine ? 'bg-white/15 text-white' : 'bg-gray-100 text-sky-700'].join(' ')}
+      className={['mb-2 flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-black no-underline', mine ? 'bg-white/15 text-white' : 'bg-gray-100 text-sky-700'].join(' ')}
     >
-      فتح الملف
+      <span>فتح المستند</span>
+      <span className="text-lg">📄</span>
     </a>
   );
 }
@@ -4701,10 +5008,54 @@ function PostCard({
   const isTextOnly = !first && String(post?.content || post?.description || '').trim().length > 0;
 
 
-  const authorName = post?.profiles?.full_name || post?.profiles?.username || 'مستخدم';
-  const username = post?.profiles?.username || post?.user_id?.slice(0, 8) || 'user';
-  const profileHandle = normalizeHandle(username) || (post?.user_id || 'user');
-  const isVerified = !!post?.profiles?.is_verified || !!post?.channels?.is_verified;
+  function postAuthorInfo(value) {
+    if (value?.channel_id && value?.channels) {
+      const channel = value.channels;
+      return {
+        name: channel.name || channel.title || channel.username || 'قناة دريدود',
+        username: channel.username || channel.handle || channel.slug || 'channel',
+        href: channel.id ? `/interface?view=channels&channel=${encodeURIComponent(channel.id)}` : '/interface?view=channels',
+        avatar: channel.avatar_url || channel.avatarUrl || channel.logo_url || '',
+        verified: !!channel.is_verified,
+        isChannel: true,
+        isGroup: false,
+      };
+    }
+    if (value?.group_id && value?.groups) {
+      const group = value.groups;
+      const profile = value.profiles || {};
+      const profileUsername = profile.username || value?.user_id?.slice(0, 8) || 'user';
+      return {
+        name: group.name || group.title || group.username || 'مجموعة دريدود',
+        username: group.username || group.handle || group.slug || 'group',
+        href: group.id ? `/interface?view=groups&group=${encodeURIComponent(group.id)}` : '/interface?view=groups',
+        avatar: group.avatar_url || group.avatarUrl || group.logo_url || '',
+        verified: !!group.is_verified,
+        isChannel: false,
+        isGroup: true,
+        actorName: profile.full_name || profile.username || 'مستخدم',
+        actorUsername: profileUsername,
+        actorHref: `/${normalizeHandle(profileUsername) || (value?.user_id || 'user')}`,
+        actorAvatar: profile.avatar_url || '',
+        actorVerified: !!profile.is_verified,
+      };
+    }
+    return {
+      name: value?.profiles?.full_name || value?.profiles?.username || 'مستخدم',
+      username: value?.profiles?.username || value?.user_id?.slice(0, 8) || 'user',
+      href: `/${normalizeHandle(value?.profiles?.username || '') || (value?.user_id || 'user')}`,
+      avatar: value?.profiles?.avatar_url || value?.groups?.avatar_url || '',
+      verified: !!value?.profiles?.is_verified,
+      isChannel: false,
+      isGroup: false,
+    };
+  }
+
+  const author = postAuthorInfo(post);
+  const originalAuthor = originalPost ? postAuthorInfo(originalPost) : null;
+  const authorName = author.name;
+  const username = author.username;
+  const isVerified = author.verified;
 
   function parseBackgroundStyle(value) {
     if (!value) return null;
@@ -4751,14 +5102,36 @@ function PostCard({
     <article id={`post-${post.id}`} className="cursor-pointer rounded-2xl border border-gray-200 bg-white p-4 shadow-sm" dir="rtl" onClick={handleCardOpen}>
       <div className="mb-4 flex items-start justify-between gap-4" dir="rtl">
         <div className="flex min-w-0 items-start gap-3 text-right">
-          <Avatar src={post?.profiles?.avatar_url || post?.channels?.avatar_url || post?.groups?.avatar_url} alt={username} />
+          {author.isGroup ? (
+            <span className="relative h-12 w-14 shrink-0">
+              <span className="absolute right-0 top-0 h-12 w-12 overflow-hidden rounded-full bg-gray-200 ring-2 ring-white">
+                {author.avatar ? <img src={author.avatar} alt={username} className="h-full w-full object-cover" /> : null}
+              </span>
+              <span className="absolute bottom-0 left-0 h-7 w-7 overflow-hidden rounded-full bg-gray-100 ring-2 ring-white">
+                {author.actorAvatar ? <img src={author.actorAvatar} alt={author.actorUsername || 'user'} className="h-full w-full object-cover" /> : null}
+              </span>
+            </span>
+          ) : (
+            <Avatar src={author.avatar} alt={username} />
+          )}
           <div className="min-w-0 pt-1 text-right">
             <div className="flex items-center justify-start gap-1.5">
-              <Link href={`/${profileHandle}`} className="truncate text-lg font-black leading-tight text-gray-950 hover:underline">{authorName}</Link>
+              <Link href={author.href} className="truncate text-lg font-black leading-tight text-gray-950 hover:underline">{authorName}</Link>
               {isVerified ? <VerifiedBadge /> : null}
             </div>
             <div className="mt-1 flex flex-wrap items-center justify-start gap-1 text-sm text-gray-500">
-              <Link href={`/${profileHandle}`} className="font-medium italic text-gray-500 hover:text-red-700 hover:underline">@{normalizeHandle(username) || username}</Link>
+              {author.isGroup ? (
+                <>
+                  <span>نشره</span>
+                  <Link href={author.actorHref} className="font-semibold text-gray-700 hover:text-red-700 hover:underline">
+                    {author.actorName}
+                  </Link>
+                  {author.actorVerified ? <VerifiedBadge /> : null}
+                  <span className="font-medium italic">@{normalizeHandle(author.actorUsername) || author.actorUsername}</span>
+                </>
+              ) : (
+                <Link href={author.href} className="font-medium italic text-gray-500 hover:text-red-700 hover:underline">@{normalizeHandle(username) || username}</Link>
+              )}
               <span>•</span>
               <span>{formatAgo(post.created_at)}</span>
               {label ? <span className="sr-only">{label}</span> : null}
@@ -4795,7 +5168,7 @@ function PostCard({
             </div>
            ) : null}
 
-          {me && post?.user_id && post.user_id !== me ? (
+          {me && !author.isChannel && !author.isGroup && post?.user_id && post.user_id !== me ? (
             <button
               type="button"
               onClick={onToggleFollow}
@@ -4841,10 +5214,10 @@ function PostCard({
           <div className="rounded-2xl border border-gray-200 bg-gray-50 p-3">
             <div className="mb-2 flex items-center justify-between">
               <div className="text-right">
-                <div className="text-base font-black text-gray-950">{originalPost?.profiles?.full_name || originalPost?.profiles?.username || 'مستخدم'}</div>
-                <div className="text-sm text-gray-500">@{normalizeHandle(originalPost?.profiles?.username || 'user')}</div>
+                <div className="text-base font-black text-gray-950">{originalAuthor?.name || 'مستخدم'}</div>
+                <div className="text-sm text-gray-500">@{normalizeHandle(originalAuthor?.username || 'user')}</div>
               </div>
-              <Avatar src={originalPost?.profiles?.avatar_url || originalPost?.channels?.avatar_url || originalPost?.groups?.avatar_url} alt={originalPost?.profiles?.username || 'user'} />
+              <Avatar src={originalAuthor?.avatar || ''} alt={originalAuthor?.username || 'user'} />
             </div>
           <ArticleContentPreview
             blocks={originalArticleBlocks.length ? originalArticleBlocks : plainTextArticleBlocks(originalPost?.content || originalPost?.description || 'منشور بدون نص')}

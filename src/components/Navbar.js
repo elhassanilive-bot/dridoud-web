@@ -23,6 +23,8 @@ const navCopy = {
       groups: 'المجموعات',
       channels: 'القنوات',
       discover: 'استكشاف',
+      chat: 'الدردشة',
+      notifications: 'الإشعارات',
       createPost: 'إنشاء منشور',
       downloadApp: 'تحميل التطبيق',
       accountSettings: 'إعدادات الحساب',
@@ -77,6 +79,8 @@ const navCopy = {
       groups: 'Groups',
       channels: 'Channels',
       discover: 'Discover',
+      chat: 'Chat',
+      notifications: 'Notifications',
       createPost: 'Create Post',
       downloadApp: 'Download App',
       accountSettings: 'Account Settings',
@@ -124,7 +128,7 @@ export default function Navbar() {
 
   const links = [
     { href: '/interface', label: copy.links.interface, icon: InterfaceIcon },
-    { href: '/', label: copy.links.home, icon: HomeIcon },
+    { href: '/interface?view=home', label: copy.links.home, icon: HomeIcon },
     { href: '/features', label: copy.links.features, icon: SparklesIcon },
     { href: '/download', label: copy.links.download, icon: DownloadIcon },
     { href: '/account', label: copy.links.account, icon: AccountIcon },
@@ -137,11 +141,13 @@ export default function Navbar() {
         {
           title: copy.columns.app,
           items: [
-            { href: '/', label: copy.links.home, icon: HomeIcon },
+            { href: '/interface?view=home', label: copy.links.home, icon: HomeIcon },
             { href: '/interface?view=reels', label: copy.links.reels, icon: ReelIcon },
             { href: '/interface?view=groups', label: copy.links.groups, icon: GroupIcon },
             { href: '/interface?view=channels', label: copy.links.channels, icon: ChannelIcon },
-            { href: '/interface?view=discover', label: copy.links.discover, icon: SearchIcon },
+            { href: '/interface?view=explore', label: copy.links.discover, icon: SearchIcon },
+            { href: '/interface?view=chat', label: copy.links.chat, icon: MailIcon },
+            { href: '/interface?view=notifications', label: copy.links.notifications, icon: BellIcon },
           ],
         },
         {
