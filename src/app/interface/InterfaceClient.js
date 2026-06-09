@@ -15,6 +15,38 @@ const SECTION_LABELS = [
   { key: 'explore', label: 'استكشاف' },
 ];
 
+function makeSpaceSlug(value) {
+  const base = String(value || 'dridoud')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_]+/gi, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 28);
+  return `${base || 'dridoud'}_${Date.now().toString(36).slice(-5)}`;
+}
+
+function normalizeSpaceUsername(value) {
+  return String(value || '')
+    .trim()
+    .replace(/^@+/, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9_]/g, '')
+    .slice(0, 24);
+}
+
+function validateSpaceUsername(value) {
+  const username = normalizeSpaceUsername(value);
+  if (!username) return { username: '', error: '' };
+  if (username.length < 4) return { username, error: 'اسم المستخدم يجب أن يكون 4 أحرف على الأقل.' };
+  if (!/^[a-z]/.test(username)) return { username, error: 'اسم المستخدم يجب أن يبدأ بحرف إنجليزي.' };
+  if (!/^[a-z][a-z0-9_]{3,23}$/.test(username)) {
+    return { username, error: 'استخدم حروف إنجليزية وأرقام وشرطة سفلية فقط بدون مسافات.' };
+  }
+  if (/__/.test(username)) return { username, error: 'لا يمكن استخدام شرطتين سفليتين متتاليتين.' };
+  if (username.endsWith('_')) return { username, error: 'اسم المستخدم لا يجب أن ينتهي بشرطة سفلية.' };
+  return { username, error: '' };
+}
+
 const SUGGESTED_FILTERS = [
   { key: 'following', label: 'من المتابعين فقط' },
   { key: 'similar', label: 'مشابه لاهتماماتي' },
@@ -609,6 +641,7 @@ export default function InterfaceClient() {
   const [editPostDraft, setEditPostDraft] = useState('');
   const [deleteTargetPost, setDeleteTargetPost] = useState(null);
   const [blockTargetPost, setBlockTargetPost] = useState(null);
+  const [createSpaceType, setCreateSpaceType] = useState(null);
   const LOAD_STEP = 30;
   const [fetchLimit, setFetchLimit] = useState(LOAD_STEP);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
@@ -1805,6 +1838,72 @@ export default function InterfaceClient() {
     return true;
   }
 
+  async function createSpace(kind, values) {
+    if (!me) {
+      notify('سجل الدخول أولاً لإنشاء قسم جديد', 'error');
+      return null;
+    }
+
+    const client = await getSupabaseClient();
+    if (!client) return null;
+
+    const isChannel = kind === 'channel';
+    const table = isChannel ? 'channels' : 'groups';
+    const validatedUsername = validateSpaceUsername(values.username);
+    if (validatedUsername.error) {
+      notify(validatedUsername.error, 'error');
+      return null;
+    }
+    const username = validatedUsername.username || makeSpaceSlug(values.name);
+    const payload = {
+      owner_id: me,
+      name: values.name.trim(),
+      username,
+      description: values.description.trim() || null,
+      category: values.category || 'general',
+    };
+
+    if (isChannel) {
+      payload.is_private = values.visibility === 'private';
+    } else {
+      payload.type = values.visibility === 'private' ? 'private' : 'public';
+      payload.allow_member_posts = true;
+      payload.allow_member_comments = true;
+      payload.allow_member_invites = true;
+      payload.allow_sharing_outside = true;
+      payload.discoverable = values.visibility !== 'private';
+    }
+
+    const { data, error } = await client
+      .from(table)
+      .insert(payload)
+      .select(isChannel ? '*, followers_count:channel_followers(count)' : '*, member_count:group_members(count)')
+      .single();
+
+    if (error || !data) {
+      notify(isChannel ? 'تعذر إنشاء القناة حالياً' : 'تعذر إنشاء المجموعة حالياً', 'error');
+      return null;
+    }
+
+    if (isChannel) {
+      await client.from('channel_members').insert({ channel_id: data.id, user_id: me, role: 'owner' });
+      setAvailableChannels((prev) => [{ ...data, my_role: 'owner' }, ...prev.filter((item) => item.id !== data.id)]);
+      setSelectedChannelId(data.id);
+      setChannelTab('posts');
+      changeSection('channels');
+      notify('تم إنشاء القناة بنجاح');
+    } else {
+      await client.from('group_members').insert({ group_id: data.id, user_id: me, role: 'owner', status: 'approved' });
+      setAvailableGroups((prev) => [{ ...data, member_count: data.member_count || [{ count: 1 }] }, ...prev.filter((item) => item.id !== data.id)]);
+      setSelectedGroupId(data.id);
+      setGroupTab('posts');
+      changeSection('groups');
+      notify('تم إنشاء المجموعة بنجاح');
+    }
+
+    return data;
+  }
+
   function openShareComposer(post) {
     setShareComposerPost(post);
     setShareQuote('');
@@ -2099,6 +2198,7 @@ export default function InterfaceClient() {
           onUpdateGroup={updateGroupSettings}
           onSetGroupDisabled={setGroupDisabled}
           onDeleteGroup={deleteGroupPermanently}
+          onOpenCreate={() => setCreateSpaceType('group')}
           renderPost={(p) => (
             <PostCard key={`group-${p.id}`} post={p} me={me} isLiked={likedByPost.has(p.id)} likeCount={deriveReactionsCount(likeCounts, p.id)} isFollowing={followed.has(p.user_id)} comments={commentsByPost[p.id] || []} originalPost={getOriginalPost(p)} onToggleLike={() => toggleLike(p.id)} onToggleFollow={() => toggleFollow(p.user_id)} onOpenComments={() => setCommentModalPost(p)} onShare={() => openShareComposer(p)} onDeletePost={() => setDeleteTargetPost(p)} onEditPost={() => openEditPostModal(p)} onCopyLink={() => copyPostLink(p)} onReportPost={() => reportPost(p)} onBlockUser={() => setBlockTargetPost(p)} label={`مجموعة: ${p?.groups?.name || ''}`} mentionMap={mentionMap} poll={pollsByPost[p.id] || null} onVotePoll={votePoll} onOpenPost={() => openPostPage(p)} />
           )}
@@ -2119,6 +2219,7 @@ export default function InterfaceClient() {
           onUpdateChannel={updateChannelSettings}
           onSetChannelDisabled={setChannelDisabled}
           onDeleteChannel={deleteChannelPermanently}
+          onOpenCreate={() => setCreateSpaceType('channel')}
           renderPost={(p) => (
             <PostCard key={`channel-${p.id}`} post={p} me={me} isLiked={likedByPost.has(p.id)} likeCount={deriveReactionsCount(likeCounts, p.id)} isFollowing={followed.has(p.user_id)} comments={commentsByPost[p.id] || []} originalPost={getOriginalPost(p)} onToggleLike={() => toggleLike(p.id)} onToggleFollow={() => toggleFollow(p.user_id)} onOpenComments={() => setCommentModalPost(p)} onShare={() => openShareComposer(p)} onDeletePost={() => setDeleteTargetPost(p)} onEditPost={() => openEditPostModal(p)} onCopyLink={() => copyPostLink(p)} onReportPost={() => reportPost(p)} onBlockUser={() => setBlockTargetPost(p)} label={`قناة: ${p?.channels?.name || p?.channels?.username || ''}`} mentionMap={mentionMap} poll={pollsByPost[p.id] || null} onVotePoll={votePoll} onOpenPost={() => openPostPage(p)} />
           )}
@@ -2418,6 +2519,17 @@ export default function InterfaceClient() {
           onReportComment={reportComment}
           onBlockCommentUser={blockCommentUser}
           onToggleReaction={toggleCommentReaction}
+        />
+      ) : null}
+
+      {createSpaceType ? (
+        <CreateSpaceModal
+          type={createSpaceType}
+          onClose={() => setCreateSpaceType(null)}
+          onCreate={async (values) => {
+            const created = await createSpace(createSpaceType, values);
+            if (created) setCreateSpaceType(null);
+          }}
         />
       ) : null}
 
@@ -3872,6 +3984,7 @@ function ChannelsSection({
   onUpdateChannel,
   onSetChannelDisabled,
   onDeleteChannel,
+  onOpenCreate,
   renderPost,
 }) {
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -3894,9 +4007,9 @@ function ChannelsSection({
         <p className="mx-auto mt-2 max-w-xl text-sm font-semibold leading-7 text-gray-500">
           عندما يتم نشر محتوى داخل القنوات ستظهر هنا بتصميم كامل يشبه التطبيق.
         </p>
-        <Link href="/create-post" className="mt-5 inline-flex rounded-full bg-red-700 px-5 py-3 text-sm font-black text-white hover:bg-red-800">
-          إنشاء منشور
-        </Link>
+        <button type="button" onClick={onOpenCreate} className="mt-5 inline-flex rounded-full bg-red-700 px-5 py-3 text-sm font-black text-white hover:bg-red-800">
+          إنشاء قناة
+        </button>
       </div>
     );
   }
@@ -3951,6 +4064,9 @@ function ChannelsSection({
         <div className="space-y-4 p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={onOpenCreate} className="inline-flex items-center gap-2 rounded-full bg-gray-950 px-4 py-2 text-sm font-black text-white hover:bg-gray-800">
+                إنشاء قناة
+              </button>
               {canPublish ? (
                 <Link href="/create-post" className="inline-flex items-center gap-2 rounded-full bg-red-700 px-4 py-2 text-sm font-black text-white hover:bg-red-800">
                   <EntryPencilIcon />
@@ -4091,6 +4207,128 @@ function ChannelsSection({
         />
       ) : null}
       {membersOpen ? <ChannelMembersModal channel={activeChannel} canManage={canManage} onClose={() => setMembersOpen(false)} notify={notify} /> : null}
+    </div>
+  );
+}
+
+function CreateSpaceModal({ type, onClose, onCreate }) {
+  const isChannel = type === 'channel';
+  const [step, setStep] = useState(1);
+  const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('general');
+  const [visibility, setVisibility] = useState('public');
+  const [saving, setSaving] = useState(false);
+  const title = isChannel ? 'إنشاء قناة جديدة' : 'إنشاء مجموعة جديدة';
+  const subtitle = isChannel ? 'أنشئ مساحة رسمية للنشر والمتابعين.' : 'أنشئ مجتمعاً للنقاشات والمنشورات والأعضاء.';
+  const nameError = name.trim().length > 0 && name.trim().length < 3 ? 'الاسم يجب أن يكون 3 أحرف على الأقل.' : '';
+  const usernameValidation = validateSpaceUsername(username);
+  const canContinue = step === 1 ? name.trim().length >= 3 && !nameError && !usernameValidation.error : true;
+
+  async function submit() {
+    if (saving || name.trim().length < 3) return;
+    setSaving(true);
+    await onCreate({
+      name,
+      username,
+      description,
+      category,
+      visibility,
+    });
+    setSaving(false);
+  }
+
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-gray-950/45 px-3 backdrop-blur-sm" dir="rtl">
+      <div className="w-full max-w-2xl overflow-hidden rounded-[2rem] bg-white text-right shadow-2xl">
+        <div className="border-b border-gray-100 bg-gradient-to-br from-red-50 via-white to-sky-50 p-5">
+          <div className="flex items-start justify-between gap-4">
+            <button type="button" onClick={onClose} className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-2xl font-black text-gray-500 shadow-sm hover:bg-gray-100">×</button>
+            <div className="min-w-0">
+              <h2 className="text-2xl font-black text-gray-950">{title}</h2>
+              <p className="mt-1 text-sm font-bold leading-6 text-gray-500">{subtitle}</p>
+            </div>
+          </div>
+          <div className="mt-5 grid grid-cols-3 gap-2">
+            {['الأساسيات', 'التفاصيل', 'الخصوصية'].map((label, index) => (
+              <div key={label} className={['rounded-full px-3 py-2 text-center text-xs font-black', step >= index + 1 ? 'bg-red-700 text-white' : 'bg-white text-gray-500'].join(' ')}>
+                {label}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-4 p-5">
+          {step === 1 ? (
+            <>
+              <label className="block text-sm font-black text-gray-800">الاسم</label>
+              <input value={name} onChange={(e) => setName(e.target.value)} placeholder={isChannel ? 'اسم القناة' : 'اسم المجموعة'} className={['w-full rounded-2xl border bg-gray-50 px-4 py-3 text-right text-sm font-bold outline-none focus:bg-white', nameError ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-sky-400'].join(' ')} />
+              {nameError ? <p className="text-xs font-bold text-red-600">{nameError}</p> : null}
+              <label className="block text-sm font-black text-gray-800">اسم المستخدم الاختياري</label>
+              <input
+                value={username}
+                onChange={(e) => setUsername(normalizeSpaceUsername(e.target.value))}
+                placeholder="@ username"
+                dir="ltr"
+                className={['w-full rounded-2xl border bg-gray-50 px-4 py-3 text-left text-sm font-bold outline-none focus:bg-white', usernameValidation.error ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-sky-400'].join(' ')}
+              />
+              <p className={['text-xs font-bold leading-6', usernameValidation.error ? 'text-red-600' : 'text-gray-500'].join(' ')}>
+                {usernameValidation.error || 'اختياري: حروف إنجليزية، أرقام وشرطة سفلية فقط. يبدأ بحرف، من 4 إلى 24 حرفاً.'}
+              </p>
+            </>
+          ) : null}
+
+          {step === 2 ? (
+            <>
+              <label className="block text-sm font-black text-gray-800">الوصف</label>
+              <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={5} placeholder="اكتب وصفاً مختصراً..." className="w-full resize-none rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-right text-sm font-bold outline-none focus:border-sky-400 focus:bg-white" />
+              <label className="block text-sm font-black text-gray-800">التصنيف</label>
+              <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-black outline-none focus:border-sky-400 focus:bg-white">
+                <option value="general">عام</option>
+                <option value="business">أعمال</option>
+                <option value="technology">تكنولوجيا</option>
+                <option value="education">تعليم</option>
+                <option value="media">إعلام</option>
+                <option value="community">مجتمع</option>
+              </select>
+            </>
+          ) : null}
+
+          {step === 3 ? (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {[
+                { key: 'public', title: isChannel ? 'قناة عامة' : 'مجموعة عامة', hint: 'يمكن للجميع العثور عليها ومشاهدة المحتوى المتاح.' },
+                { key: 'private', title: isChannel ? 'قناة خاصة' : 'مجموعة خاصة', hint: 'الوصول يكون محدوداً حسب الإعدادات والأعضاء.' },
+              ].map((item) => (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => setVisibility(item.key)}
+                  className={['rounded-2xl border p-4 text-right transition', visibility === item.key ? 'border-red-300 bg-red-50 text-red-800' : 'border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100'].join(' ')}
+                >
+                  <p className="text-base font-black">{item.title}</p>
+                  <p className="mt-2 text-xs font-bold leading-6 text-gray-500">{item.hint}</p>
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="flex items-center gap-2 border-t border-gray-100 p-5">
+          <button type="button" onClick={onClose} className="rounded-2xl bg-gray-100 px-5 py-3 text-sm font-black text-gray-700 hover:bg-gray-200">إلغاء</button>
+          {step > 1 ? (
+            <button type="button" onClick={() => setStep((value) => Math.max(1, value - 1))} className="rounded-2xl bg-gray-100 px-5 py-3 text-sm font-black text-gray-700 hover:bg-gray-200">السابق</button>
+          ) : null}
+          {step < 3 ? (
+            <button type="button" disabled={!canContinue} onClick={() => setStep((value) => Math.min(3, value + 1))} className="mr-auto rounded-2xl bg-red-700 px-6 py-3 text-sm font-black text-white hover:bg-red-800 disabled:opacity-50">التالي</button>
+          ) : (
+            <button type="button" disabled={saving || name.trim().length < 3} onClick={submit} className="mr-auto rounded-2xl bg-red-700 px-6 py-3 text-sm font-black text-white hover:bg-red-800 disabled:opacity-50">
+              {saving ? 'جاري الإنشاء...' : isChannel ? 'إنشاء القناة' : 'إنشاء المجموعة'}
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -4406,6 +4644,7 @@ function GroupsSection({
   onUpdateGroup,
   onSetGroupDisabled,
   onDeleteGroup,
+  onOpenCreate,
   renderPost,
 }) {
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -4437,7 +4676,7 @@ function GroupsSection({
         </div>
         <h2 className="text-2xl font-black text-gray-950">لا توجد مجموعات بعد</h2>
         <p className="mx-auto mt-2 max-w-md text-sm leading-7 text-gray-500">عندما يتم نشر محتوى داخل المجموعات ستظهر هنا بتصميم كامل يشبه التطبيق.</p>
-        <Link href="/create-post" className="mt-5 inline-flex rounded-full bg-red-700 px-6 py-2 text-sm font-black text-white hover:bg-red-800">إنشاء منشور</Link>
+        <button type="button" onClick={onOpenCreate} className="mt-5 inline-flex rounded-full bg-red-700 px-6 py-2 text-sm font-black text-white hover:bg-red-800">إنشاء مجموعة</button>
       </div>
     );
   }
@@ -4479,6 +4718,9 @@ function GroupsSection({
         <div className="space-y-4 p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={onOpenCreate} className="inline-flex items-center gap-2 rounded-full bg-gray-950 px-4 py-2 text-sm font-black text-white hover:bg-gray-800">
+                إنشاء مجموعة
+              </button>
               <Link href="/create-post" className="inline-flex items-center gap-2 rounded-full bg-red-700 px-4 py-2 text-sm font-black text-white hover:bg-red-800">
                 <EntryPencilIcon />
                 نشر في المجموعة
