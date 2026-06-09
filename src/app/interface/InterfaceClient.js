@@ -5751,6 +5751,376 @@ function RichArticleText({ text = '', as: Tag = 'span', className = '' }) {
   );
 }
 
+const DEFAULT_NOTIFICATION_SETTINGS = {
+  new_follower: true,
+  post_like: true,
+  post_dislike: false,
+  post_save: false,
+  post_comment: true,
+  comment_reply: true,
+  repost: true,
+  new_message: true,
+  message_reply: true,
+  message_request: true,
+  mention_post: true,
+  mention_comment: true,
+  suggestion_accounts: true,
+  suggestion_posts: true,
+  report_update: true,
+  block_update: true,
+  system_update: true,
+  system_features: true,
+  system_maintenance: true,
+};
+
+const NOTIFICATION_SETTING_GROUPS = [
+  {
+    title: 'المتابعة',
+    hint: 'إشعارات الحسابات التي بدأت متابعتك.',
+    items: [{ key: 'new_follower', label: 'متابعون جدد', sub: 'عندما يبدأ شخص بمتابعتك' }],
+  },
+  {
+    title: 'التفاعلات',
+    hint: 'الإعجابات والحفظ والتعليقات وإعادة النشر.',
+    items: [
+      { key: 'post_like', label: 'الإعجابات', sub: 'عندما يعجب شخص بمنشورك' },
+      { key: 'post_dislike', label: 'عدم الإعجاب', sub: 'عند تسجيل عدم إعجاب' },
+      { key: 'post_save', label: 'الحفظ', sub: 'عندما يحفظ شخص منشورك' },
+      { key: 'post_comment', label: 'التعليقات', sub: 'عند إضافة تعليق على منشورك' },
+      { key: 'comment_reply', label: 'الردود', sub: 'عند الرد على تعليقك' },
+      { key: 'repost', label: 'إعادة النشر', sub: 'عند إعادة نشر منشورك' },
+    ],
+  },
+  {
+    title: 'الرسائل',
+    hint: 'تنبيهات الدردشة وطلبات الرسائل.',
+    items: [
+      { key: 'new_message', label: 'رسائل جديدة', sub: 'عند استلام رسالة خاصة' },
+      { key: 'message_request', label: 'طلبات الرسائل', sub: 'عند وصول طلب مراسلة جديد' },
+    ],
+  },
+  {
+    title: 'الذكر',
+    hint: 'عندما يذكرك المستخدمون في منشور أو تعليق.',
+    items: [
+      { key: 'mention_post', label: 'ذكر في منشور', sub: 'عند ذكرك داخل منشور' },
+      { key: 'mention_comment', label: 'ذكر في تعليق', sub: 'عند ذكرك داخل تعليق' },
+    ],
+  },
+  {
+    title: 'الاقتراحات',
+    hint: 'اقتراحات الحسابات والمنشورات.',
+    items: [
+      { key: 'suggestion_accounts', label: 'اقتراح حسابات', sub: 'حسابات قد تهمك' },
+      { key: 'suggestion_posts', label: 'منشورات مقترحة', sub: 'محتوى قد يعجبك' },
+    ],
+  },
+  {
+    title: 'البلاغات والحظر',
+    hint: 'تحديثات البلاغات والحظر.',
+    items: [
+      { key: 'report_update', label: 'تحديثات البلاغات', sub: 'مستجدات البلاغات التي أرسلتها' },
+      { key: 'block_update', label: 'تحديثات الحظر', sub: 'تنبيهات مرتبطة بإجراءات الحظر' },
+    ],
+  },
+  {
+    title: 'إشعارات النظام',
+    hint: 'تحديثات التطبيق والصيانة والنصائح.',
+    items: [
+      { key: 'system_update', label: 'تحديثات التطبيق', sub: 'إصدارات وميزات جديدة' },
+      { key: 'system_features', label: 'نصائح وميزات', sub: 'تعرف على الميزات الجديدة' },
+      { key: 'system_maintenance', label: 'تنبيهات الصيانة', sub: 'تنبيهات مهمة عن الصيانة' },
+    ],
+  },
+];
+
+function NotificationSettingsPanel({ values, loading, onToggle }) {
+  return (
+    <div className="mt-4 space-y-4">
+      {loading ? (
+        <div className="rounded-3xl border border-gray-200 bg-gray-50 p-8 text-center text-sm font-black text-gray-500">
+          جارٍ تحميل إعدادات الإشعارات...
+        </div>
+      ) : null}
+      {NOTIFICATION_SETTING_GROUPS.map((group) => (
+        <SettingsCard key={group.title} title={group.title} hint={group.hint}>
+          {group.items.map((item) => (
+            <SettingControl
+              key={item.key}
+              control={{ key: item.key, label: item.label, hint: item.sub, type: 'toggle', defaultValue: DEFAULT_NOTIFICATION_SETTINGS[item.key] }}
+              value={values[item.key]}
+              onChange={(value) => onToggle(item.key, value)}
+            />
+          ))}
+        </SettingsCard>
+      ))}
+    </div>
+  );
+}
+
+const DEFAULT_PRIVACY_SETTINGS = {
+  account_type: 'public',
+  likes_permission: 'everyone',
+  comments_permission: 'everyone',
+  reposts_permission: 'everyone',
+  messages_permission: 'everyone',
+  profile_details_visibility: 'public',
+  country_visibility: 'public',
+  city_visibility: 'public',
+  gender_visibility: 'public',
+  job_title_visibility: 'public',
+  workplace_visibility: 'public',
+  marital_status_visibility: 'public',
+  date_of_birth_visibility: 'public',
+  website_visibility: 'public',
+  contact_email_visibility: 'private',
+  phone_number_visibility: 'private',
+  social_links_visibility: 'public',
+  activity_status_visibility: 'public',
+};
+
+const PUBLIC_PRIVATE_OPTIONS = [
+  { value: 'public', label: 'عام' },
+  { value: 'private', label: 'خاص' },
+];
+
+const INTERACTION_PRIVACY_OPTIONS = [
+  { value: 'everyone', label: 'الجميع' },
+  { value: 'followers', label: 'المتابعون فقط' },
+  { value: 'nobody', label: 'لا أحد' },
+];
+
+function PrivacySettingsPanel({ values, loading, onChange }) {
+  const aboutEnabled = values.profile_details_visibility === 'public';
+  const aboutFields = [
+    ['country_visibility', 'الدولة'],
+    ['city_visibility', 'المدينة'],
+    ['gender_visibility', 'الجنس'],
+    ['job_title_visibility', 'المسمى الوظيفي'],
+    ['workplace_visibility', 'مكان العمل'],
+    ['marital_status_visibility', 'الحالة الاجتماعية'],
+    ['date_of_birth_visibility', 'تاريخ الميلاد'],
+    ['website_visibility', 'الموقع الإلكتروني'],
+    ['contact_email_visibility', 'Contact Email'],
+    ['phone_number_visibility', 'Phone Number'],
+    ['social_links_visibility', 'Social Links'],
+  ];
+
+  return (
+    <div className="mt-4 space-y-4">
+      {loading ? <SettingsLoading label="جارٍ تحميل إعدادات الخصوصية..." /> : null}
+      <SettingsCard title="نوع الحساب" hint="اجعل الحساب عاماً أو خاصاً كما في التطبيق.">
+        <SettingControl
+          control={{ key: 'account_type', label: 'نوع الحساب', type: 'select', defaultValue: 'public', options: PUBLIC_PRIVATE_OPTIONS }}
+          value={values.account_type}
+          onChange={(value) => onChange('account_type', value)}
+        />
+      </SettingsCard>
+      <SettingsCard title="تفاصيل قسم حول" hint="إذا جعلت قسم حول خاصاً سيتم تعطيل تفاصيله للآخرين.">
+        <SettingControl
+          control={{ key: 'profile_details_visibility', label: 'إظهار قسم حول', type: 'select', defaultValue: 'public', options: PUBLIC_PRIVATE_OPTIONS }}
+          value={values.profile_details_visibility}
+          onChange={(value) => onChange('profile_details_visibility', value)}
+        />
+        <div className="mt-3 divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100">
+          {aboutFields.map(([key, label]) => (
+            <PrivacySelectRow
+              key={key}
+              label={label}
+              value={values[key]}
+              disabled={!aboutEnabled}
+              options={PUBLIC_PRIVATE_OPTIONS}
+              onChange={(value) => onChange(key, value)}
+            />
+          ))}
+        </div>
+      </SettingsCard>
+      <SettingsCard title="عناصر التحكم بالتفاعل" hint="من يستطيع التفاعل مع منشوراتك.">
+        <PrivacySelectRow label="الإعجابات" value={values.likes_permission} options={INTERACTION_PRIVACY_OPTIONS} onChange={(value) => onChange('likes_permission', value)} />
+        <PrivacySelectRow label="التعليقات" value={values.comments_permission} options={INTERACTION_PRIVACY_OPTIONS} onChange={(value) => onChange('comments_permission', value)} />
+        <PrivacySelectRow label="إعادة النشر" value={values.reposts_permission} options={INTERACTION_PRIVACY_OPTIONS} onChange={(value) => onChange('reposts_permission', value)} />
+      </SettingsCard>
+      <SettingsCard title="عناصر التحكم بالرسائل" hint="من يستطيع إرسال الرسائل لك.">
+        <PrivacySelectRow label="إرسال الرسائل" value={values.messages_permission} options={INTERACTION_PRIVACY_OPTIONS} onChange={(value) => onChange('messages_permission', value)} />
+      </SettingsCard>
+    </div>
+  );
+}
+
+function ActivityStatusPanel({ values, loading, onChange }) {
+  return (
+    <div className="mt-4 space-y-4">
+      {loading ? <SettingsLoading label="جارٍ تحميل إعدادات النشاط..." /> : null}
+      <SettingsCard title="النشاط والحالة" hint="تحكم في ظهور آخر نشاط وحالة الاتصال.">
+        <SettingControl
+          control={{ key: 'activity_status_visibility', label: 'إظهار آخر نشاط', type: 'select', defaultValue: 'public', options: PUBLIC_PRIVATE_OPTIONS }}
+          value={values.activity_status_visibility}
+          onChange={(value) => onChange('activity_status_visibility', value)}
+        />
+      </SettingsCard>
+    </div>
+  );
+}
+
+function PrivacySelectRow({ label, value, options, onChange, disabled = false }) {
+  return (
+    <div className={['flex items-center justify-between gap-3 px-3 py-3 text-right', disabled ? 'opacity-50' : ''].join(' ')}>
+      <select
+        value={value || options[0]?.value}
+        disabled={disabled}
+        onChange={(event) => onChange(event.target.value)}
+        className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-black text-gray-800 outline-none focus:border-sky-300 disabled:bg-gray-100"
+      >
+        {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+      </select>
+      <div>
+        <p className="text-sm font-black text-gray-900">{label}</p>
+        {disabled ? <p className="text-xs font-bold text-gray-500">فعّل إظهار قسم حول لتعديل هذا الخيار.</p> : null}
+      </div>
+    </div>
+  );
+}
+
+function SettingsLoading({ label }) {
+  return (
+    <div className="rounded-3xl border border-gray-200 bg-gray-50 p-6 text-center text-sm font-black text-gray-500">
+      {label}
+    </div>
+  );
+}
+
+function AccountCollectionPanel({ itemKey, rows, loading, onRemove }) {
+  const copy = {
+    blocked_accounts: {
+      empty: 'لا توجد حسابات محظورة حالياً.',
+      action: 'إلغاء الحظر',
+      title: 'الحسابات المحظورة',
+      hint: 'الحسابات هنا لا تستطيع التفاعل معك حتى تلغي الحظر.',
+    },
+    hidden_posts: {
+      empty: 'لا توجد عناصر مخفية حالياً.',
+      action: 'إلغاء الإخفاء',
+      title: 'المحتوى المخفي',
+      hint: 'استرجع المنشورات أو المستخدمين الذين أخفيت محتواهم.',
+    },
+    saved_items: {
+      empty: 'لا توجد عناصر محفوظة بعد.',
+      action: 'فتح المنشور',
+      title: 'العناصر المحفوظة',
+      hint: 'منشورات وريلز حفظتها للرجوع إليها لاحقاً.',
+    },
+    watch_history: {
+      empty: 'سجل المشاهدات في التطبيق محفوظ محلياً على جهازك حالياً.',
+      action: '',
+      title: 'سجل المشاهدات',
+      hint: 'عند تفعيل مزامنة سجل المشاهدة سيظهر هنا نفس سجل التطبيق.',
+    },
+  }[itemKey] || {};
+
+  if (itemKey === 'watch_history') {
+    return (
+      <div className="mt-4 rounded-3xl border border-amber-200 bg-amber-50 p-5 text-right">
+        <p className="text-lg font-black text-gray-950">{copy.title}</p>
+        <p className="mt-2 text-sm font-bold leading-7 text-gray-700">{copy.hint}</p>
+        <p className="mt-3 rounded-2xl bg-white px-4 py-3 text-sm font-bold text-amber-700">{copy.empty}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4 space-y-4">
+      <div className="rounded-3xl border border-gray-200 bg-white p-4 text-right">
+        <p className="text-lg font-black text-gray-950">{copy.title}</p>
+        <p className="mt-1 text-sm font-bold text-gray-500">{copy.hint}</p>
+      </div>
+
+      {loading ? (
+        <div className="rounded-3xl border border-gray-200 bg-gray-50 p-8 text-center text-sm font-black text-gray-500">
+          جارٍ تحميل البيانات...
+        </div>
+      ) : rows.length ? (
+        <div className="grid gap-3">
+          {rows.map((row, index) => (
+            <AccountCollectionRow
+              key={`${itemKey}-${row.post_id || row.blocked_id || row.target_user_id || index}`}
+              itemKey={itemKey}
+              row={row}
+              actionLabel={copy.action}
+              onRemove={onRemove}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-3xl border border-gray-200 bg-gray-50 p-8 text-center text-sm font-black text-gray-500">
+          {copy.empty}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AccountCollectionRow({ itemKey, row, actionLabel, onRemove }) {
+  const profile = row.profile || row.post?.profiles || {};
+  const post = row.post || row.posts || null;
+  const media = post ? mediaFromPost(post) : [];
+  const firstMedia = media[0] || null;
+  const isVideo = firstMedia?.type === 'video' || String(post?.media_type || '').toLowerCase().includes('video');
+  const title = profile.full_name || profile.username || (post ? 'منشور محفوظ' : 'مستخدم');
+  const username = profile.username ? `@${profile.username}` : '';
+  const text = String(post?.content || post?.description || '').trim();
+  const postHref = post?.id ? postPermalink(post.id) : null;
+
+  return (
+    <div className="rounded-3xl border border-gray-200 bg-white p-4 text-right shadow-sm">
+      <div className="flex items-start gap-3">
+        <Avatar src={profile.avatar_url} alt={title} />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="font-black text-gray-950">{title}</p>
+            {username ? <span className="text-sm font-bold text-gray-500" dir="ltr">{username}</span> : null}
+            <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-black text-gray-500">{formatAgo(row.created_at || post?.created_at)}</span>
+          </div>
+          {itemKey === 'hidden_posts' && row.kind === 'hidden_user' ? (
+            <p className="mt-2 text-sm font-bold text-gray-600">تم إخفاء منشورات هذا المستخدم من الظهور لديك.</p>
+          ) : null}
+          {itemKey === 'blocked_accounts' ? (
+            <p className="mt-2 text-sm font-bold text-gray-600">هذا الحساب موجود في قائمة الحظر الخاصة بك.</p>
+          ) : null}
+        </div>
+      </div>
+
+      {post ? (
+        <div className="mt-3 rounded-2xl border border-gray-100 bg-gray-50 p-3">
+          {text ? <RichArticleText as="p" text={text.length > 260 ? `${text.slice(0, 260).trim()}...` : text} className="whitespace-pre-wrap text-sm font-bold leading-7 text-gray-800" /> : null}
+          {firstMedia ? (
+            <div className="mt-3 overflow-hidden rounded-2xl bg-black">
+              {isVideo ? (
+                <video src={firstMedia.full || firstMedia.url} poster={firstMedia.url} controls preload="metadata" className="max-h-72 w-full object-contain" />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={firstMedia.url || firstMedia.full} alt="" className="max-h-72 w-full object-cover" />
+              )}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        {postHref ? (
+          <Link href={postHref} className="rounded-2xl bg-sky-50 px-4 py-2 text-sm font-black text-sky-700 hover:bg-sky-100">
+            فتح المنشور
+          </Link>
+        ) : null}
+        {itemKey !== 'saved_items' && actionLabel ? (
+          <button type="button" onClick={() => onRemove(row)} className="rounded-2xl bg-red-50 px-4 py-2 text-sm font-black text-red-700 hover:bg-red-100">
+            {actionLabel}
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 function CommentsModal({
   post,
   me,
@@ -6090,9 +6460,16 @@ function SettingsDetailModal({ item, creatorStats, onClose }) {
   const [email, setEmail] = useState('');
   const [passwords, setPasswords] = useState({ password: '', confirm: '' });
   const [preferences, setPreferences] = useState(() => loadInterfacePreferences());
+  const [collectionRows, setCollectionRows] = useState([]);
+  const [collectionLoading, setCollectionLoading] = useState(false);
+  const [notificationSettings, setNotificationSettings] = useState(() => ({ ...DEFAULT_NOTIFICATION_SETTINGS }));
+  const [notificationLoading, setNotificationLoading] = useState(false);
+  const [privacySettings, setPrivacySettings] = useState(() => ({ ...DEFAULT_PRIVACY_SETTINGS }));
+  const [privacyLoading, setPrivacyLoading] = useState(false);
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const collectionKeys = ['blocked_accounts', 'hidden_posts', 'saved_items', 'watch_history'];
 
   useEffect(() => {
     let mounted = true;
@@ -6116,6 +6493,220 @@ function SettingsDetailModal({ item, creatorStats, onClose }) {
     loadAccount();
     return () => { mounted = false; };
   }, []);
+
+  useEffect(() => {
+    if (!collectionKeys.includes(item.key)) return;
+    loadAccountCollection();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.key]);
+
+  useEffect(() => {
+    if (item.key !== 'notification_settings') return;
+    loadNotificationSettings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.key]);
+
+  useEffect(() => {
+    if (!['privacy', 'activity_status'].includes(item.key)) return;
+    loadPrivacySettings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.key]);
+
+  async function loadPrivacySettings() {
+    setPrivacyLoading(true);
+    setError('');
+    try {
+      const client = await getSupabaseClient();
+      if (!client) throw new Error('no_client');
+      const { data } = await client.auth.getSession();
+      const user = data?.session?.user;
+      if (!user) throw new Error('no_session');
+      const res = await client
+        .from('privacy_settings')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (res.error) throw res.error;
+      setPrivacySettings({ ...DEFAULT_PRIVACY_SETTINGS, ...(res.data || {}) });
+    } catch (e) {
+      setError(normalizeInterfaceError(e));
+    } finally {
+      setPrivacyLoading(false);
+    }
+  }
+
+  async function updatePrivacySetting(key, value) {
+    const next = { ...privacySettings, [key]: value };
+    setPrivacySettings(next);
+    setNotice('');
+    setError('');
+    try {
+      const client = await getSupabaseClient();
+      if (!client) throw new Error('no_client');
+      const { data } = await client.auth.getSession();
+      const user = data?.session?.user;
+      if (!user) throw new Error('no_session');
+      const payload = { ...next, user_id: user.id, updated_at: new Date().toISOString() };
+      const res = await client.from('privacy_settings').upsert(payload, { onConflict: 'user_id' });
+      if (res.error) throw res.error;
+      setNotice('تم تحديث إعدادات الخصوصية.');
+    } catch (e) {
+      setPrivacySettings(privacySettings);
+      setError(normalizeInterfaceError(e));
+    }
+  }
+
+  async function loadNotificationSettings() {
+    setNotificationLoading(true);
+    setError('');
+    try {
+      const client = await getSupabaseClient();
+      if (!client) throw new Error('no_client');
+      const { data } = await client.auth.getSession();
+      const user = data?.session?.user;
+      if (!user) throw new Error('no_session');
+      const res = await client
+        .from('notification_settings')
+        .select('preferences')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (res.error) throw res.error;
+      setNotificationSettings({ ...DEFAULT_NOTIFICATION_SETTINGS, ...(res.data?.preferences || {}) });
+    } catch (e) {
+      setError(normalizeInterfaceError(e));
+    } finally {
+      setNotificationLoading(false);
+    }
+  }
+
+  async function updateNotificationSetting(key, value) {
+    const next = { ...notificationSettings, [key]: value };
+    setNotificationSettings(next);
+    setNotice('');
+    setError('');
+    try {
+      const client = await getSupabaseClient();
+      if (!client) throw new Error('no_client');
+      const { data } = await client.auth.getSession();
+      const user = data?.session?.user;
+      if (!user) throw new Error('no_session');
+      const { error: updateError } = await client.from('notification_settings').upsert({
+        user_id: user.id,
+        preferences: next,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
+      if (updateError) throw updateError;
+      setNotice('تم تحديث إعدادات الإشعارات.');
+    } catch (e) {
+      setNotificationSettings(notificationSettings);
+      setError(normalizeInterfaceError(e));
+    }
+  }
+
+  async function loadAccountCollection() {
+    setCollectionLoading(true);
+    setCollectionRows([]);
+    setError('');
+    try {
+      const client = await getSupabaseClient();
+      if (!client) throw new Error('no_client');
+      const { data } = await client.auth.getSession();
+      const user = data?.session?.user;
+      if (!user) throw new Error('no_session');
+
+      if (item.key === 'blocked_accounts') {
+        const blocksRes = await client
+          .from('blocks')
+          .select('blocked_id, created_at')
+          .eq('blocker_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(100);
+        if (blocksRes.error) throw blocksRes.error;
+        const ids = (blocksRes.data || []).map((row) => row.blocked_id).filter(Boolean);
+        const profilesRes = ids.length
+          ? await client.from('profiles').select('user_id,username,full_name,avatar_url,is_verified').in('user_id', ids)
+          : { data: [], error: null };
+        if (profilesRes.error) throw profilesRes.error;
+        const profileMap = Object.fromEntries((profilesRes.data || []).map((row) => [row.user_id, row]));
+        setCollectionRows((blocksRes.data || []).map((row) => ({ ...row, profile: profileMap[row.blocked_id] || null })));
+        return;
+      }
+
+      if (item.key === 'hidden_posts') {
+        const hiddenRes = await client
+          .from('hidden_posts')
+          .select('post_id, reason, created_at, posts(id,content,description,media_type,created_at,user_id,profiles!posts_user_id_fkey(username,full_name,avatar_url,is_verified),post_media(*))')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(80);
+        const prefsRes = await client
+          .from('post_user_preferences')
+          .select('target_user_id, preference, created_at')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(80);
+        if (hiddenRes.error) throw hiddenRes.error;
+        if (prefsRes.error) throw prefsRes.error;
+        const ids = (prefsRes.data || []).map((row) => row.target_user_id).filter(Boolean);
+        const profilesRes = ids.length
+          ? await client.from('profiles').select('user_id,username,full_name,avatar_url,is_verified').in('user_id', ids)
+          : { data: [], error: null };
+        if (profilesRes.error) throw profilesRes.error;
+        const profileMap = Object.fromEntries((profilesRes.data || []).map((row) => [row.user_id, row]));
+        setCollectionRows([
+          ...(prefsRes.data || []).map((row) => ({ kind: 'hidden_user', ...row, profile: profileMap[row.target_user_id] || null })),
+          ...(hiddenRes.data || []).map((row) => ({ kind: 'hidden_post', ...row, post: row.posts || null })),
+        ]);
+        return;
+      }
+
+      if (item.key === 'saved_items') {
+        const savedRes = await client
+          .from('bookmarks')
+          .select('post_id, created_at, posts(id,content,description,media_type,created_at,user_id,profiles!posts_user_id_fkey(username,full_name,avatar_url,is_verified),post_media(*))')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(100);
+        if (savedRes.error) throw savedRes.error;
+        setCollectionRows((savedRes.data || []).map((row) => ({ ...row, post: row.posts || null })));
+        return;
+      }
+
+      setCollectionRows([]);
+    } catch (e) {
+      setError(normalizeInterfaceError(e));
+    } finally {
+      setCollectionLoading(false);
+    }
+  }
+
+  async function removeCollectionRow(row) {
+    const client = await getSupabaseClient();
+    if (!client) return;
+    const { data } = await client.auth.getSession();
+    const user = data?.session?.user;
+    if (!user) return;
+
+    if (item.key === 'blocked_accounts' && row.blocked_id) {
+      await client.from('blocks').delete().eq('blocker_id', user.id).eq('blocked_id', row.blocked_id);
+      setCollectionRows((prev) => prev.filter((entry) => entry.blocked_id !== row.blocked_id));
+      setNotice('تم إلغاء الحظر.');
+      return;
+    }
+
+    if (item.key === 'hidden_posts' && row.kind === 'hidden_post' && row.post_id) {
+      await client.from('hidden_posts').delete().eq('user_id', user.id).eq('post_id', row.post_id);
+      setCollectionRows((prev) => prev.filter((entry) => !(entry.kind === 'hidden_post' && entry.post_id === row.post_id)));
+      setNotice('تم إلغاء إخفاء المنشور.');
+      return;
+    }
+
+    if (item.key === 'hidden_posts' && row.kind === 'hidden_user' && row.target_user_id) {
+      await client.from('post_user_preferences').delete().eq('user_id', user.id).eq('target_user_id', row.target_user_id);
+      setCollectionRows((prev) => prev.filter((entry) => !(entry.kind === 'hidden_user' && entry.target_user_id === row.target_user_id)));
+      setNotice('تم إلغاء إخفاء منشورات المستخدم.');
+    }
+  }
 
   function setPref(key, value) {
     setPreferences((prev) => {
@@ -6272,7 +6863,40 @@ function SettingsDetailModal({ item, creatorStats, onClose }) {
             <CreatorAcademyPanel stats={creatorStats} />
           ) : null}
 
-          {!['account_settings', 'account_management', 'creator_academy'].includes(item.key) ? (
+          {item.key === 'notification_settings' ? (
+            <NotificationSettingsPanel
+              values={notificationSettings}
+              loading={notificationLoading}
+              onToggle={updateNotificationSetting}
+            />
+          ) : null}
+
+          {item.key === 'privacy' ? (
+            <PrivacySettingsPanel
+              values={privacySettings}
+              loading={privacyLoading}
+              onChange={updatePrivacySetting}
+            />
+          ) : null}
+
+          {item.key === 'activity_status' ? (
+            <ActivityStatusPanel
+              values={privacySettings}
+              loading={privacyLoading}
+              onChange={updatePrivacySetting}
+            />
+          ) : null}
+
+          {collectionKeys.includes(item.key) ? (
+            <AccountCollectionPanel
+              itemKey={item.key}
+              rows={collectionRows}
+              loading={collectionLoading}
+              onRemove={removeCollectionRow}
+            />
+          ) : null}
+
+          {!['account_settings', 'account_management', 'creator_academy', 'notification_settings', 'privacy', 'activity_status', ...collectionKeys].includes(item.key) ? (
             <SettingsControlsGrid itemKey={item.key} preferences={preferences} setPref={setPref} />
           ) : null}
 
