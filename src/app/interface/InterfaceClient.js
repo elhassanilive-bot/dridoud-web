@@ -36,15 +36,42 @@ function normalizeSpaceUsername(value) {
 
 function validateSpaceUsername(value) {
   const username = normalizeSpaceUsername(value);
-  if (!username) return { username: '', error: '' };
-  if (username.length < 4) return { username, error: 'اسم المستخدم يجب أن يكون 4 أحرف على الأقل.' };
+  if (!username) return { username: '', error: 'اسم المستخدم مطلوب.' };
+  if (username.length < 6) return { username, error: 'اسم المستخدم يجب أن يكون 6 أحرف على الأقل.' };
   if (!/^[a-z]/.test(username)) return { username, error: 'اسم المستخدم يجب أن يبدأ بحرف إنجليزي.' };
-  if (!/^[a-z][a-z0-9_]{3,23}$/.test(username)) {
+  if (!/^[a-z][a-z0-9_]{5,23}$/.test(username)) {
     return { username, error: 'استخدم حروف إنجليزية وأرقام وشرطة سفلية فقط بدون مسافات.' };
   }
   if (/__/.test(username)) return { username, error: 'لا يمكن استخدام شرطتين سفليتين متتاليتين.' };
   if (username.endsWith('_')) return { username, error: 'اسم المستخدم لا يجب أن ينتهي بشرطة سفلية.' };
   return { username, error: '' };
+}
+
+async function checkSpaceUsernameAvailability(username) {
+  const cleanUsername = normalizeSpaceUsername(username);
+  if (!cleanUsername) return { available: false, error: 'اسم المستخدم مطلوب.' };
+  const client = await getSupabaseClient();
+  if (!client) return { available: false, error: 'تعذر الاتصال بالخادم للتحقق من اسم المستخدم.' };
+
+  const [profilesRes, groupsRes, channelsRes] = await Promise.all([
+    client.from('profiles').select('user_id').eq('username', cleanUsername).limit(1),
+    client.from('groups').select('id').eq('username', cleanUsername).limit(1),
+    client.from('channels').select('id').eq('username', cleanUsername).limit(1),
+  ]);
+
+  if (profilesRes?.error || groupsRes?.error || channelsRes?.error) {
+    return { available: false, error: 'تعذر التحقق من توفر اسم المستخدم حالياً.' };
+  }
+
+  const used =
+    (profilesRes?.data || []).length > 0 ||
+    (groupsRes?.data || []).length > 0 ||
+    (channelsRes?.data || []).length > 0;
+
+  return {
+    available: !used,
+    error: used ? 'اسم المستخدم مستخدم بالفعل في الحسابات أو المجموعات أو القنوات.' : '',
+  };
 }
 
 const SUGGESTED_FILTERS = [
@@ -1854,7 +1881,12 @@ export default function InterfaceClient() {
       notify(validatedUsername.error, 'error');
       return null;
     }
-    const username = validatedUsername.username || makeSpaceSlug(values.name);
+    const availability = await checkSpaceUsernameAvailability(validatedUsername.username);
+    if (!availability.available) {
+      notify(availability.error || 'اسم المستخدم غير متاح', 'error');
+      return null;
+    }
+    const username = validatedUsername.username;
     const payload = {
       owner_id: me,
       name: values.name.trim(),
@@ -4220,14 +4252,34 @@ function CreateSpaceModal({ type, onClose, onCreate }) {
   const [category, setCategory] = useState('general');
   const [visibility, setVisibility] = useState('public');
   const [saving, setSaving] = useState(false);
+  const [checkingUsername, setCheckingUsername] = useState(false);
+  const [usernameAvailabilityError, setUsernameAvailabilityError] = useState('');
   const title = isChannel ? 'إنشاء قناة جديدة' : 'إنشاء مجموعة جديدة';
   const subtitle = isChannel ? 'أنشئ مساحة رسمية للنشر والمتابعين.' : 'أنشئ مجتمعاً للنقاشات والمنشورات والأعضاء.';
-  const nameError = name.trim().length > 0 && name.trim().length < 3 ? 'الاسم يجب أن يكون 3 أحرف على الأقل.' : '';
+  const nameError = name.trim().length > 0 && name.trim().length < 5 ? 'الاسم يجب أن يكون 5 أحرف على الأقل.' : '';
   const usernameValidation = validateSpaceUsername(username);
-  const canContinue = step === 1 ? name.trim().length >= 3 && !nameError && !usernameValidation.error : true;
+  const usernameError = usernameValidation.error || usernameAvailabilityError;
+  const canContinue = step === 1 ? name.trim().length >= 5 && !nameError && !usernameError && !checkingUsername : true;
+
+  async function goNext() {
+    if (step !== 1) {
+      setStep((value) => Math.min(3, value + 1));
+      return;
+    }
+    if (name.trim().length < 5 || usernameValidation.error) return;
+    setCheckingUsername(true);
+    setUsernameAvailabilityError('');
+    const availability = await checkSpaceUsernameAvailability(usernameValidation.username);
+    setCheckingUsername(false);
+    if (!availability.available) {
+      setUsernameAvailabilityError(availability.error || 'اسم المستخدم غير متاح.');
+      return;
+    }
+    setStep(2);
+  }
 
   async function submit() {
-    if (saving || name.trim().length < 3) return;
+    if (saving || name.trim().length < 5 || usernameValidation.error || usernameAvailabilityError) return;
     setSaving(true);
     await onCreate({
       name,
@@ -4265,16 +4317,21 @@ function CreateSpaceModal({ type, onClose, onCreate }) {
               <label className="block text-sm font-black text-gray-800">الاسم</label>
               <input value={name} onChange={(e) => setName(e.target.value)} placeholder={isChannel ? 'اسم القناة' : 'اسم المجموعة'} className={['w-full rounded-2xl border bg-gray-50 px-4 py-3 text-right text-sm font-bold outline-none focus:bg-white', nameError ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-sky-400'].join(' ')} />
               {nameError ? <p className="text-xs font-bold text-red-600">{nameError}</p> : null}
-              <label className="block text-sm font-black text-gray-800">اسم المستخدم الاختياري</label>
+              <label className="block text-sm font-black text-gray-800">اسم المستخدم</label>
               <input
                 value={username}
-                onChange={(e) => setUsername(normalizeSpaceUsername(e.target.value))}
+                onChange={(e) => {
+                  setUsername(normalizeSpaceUsername(e.target.value));
+                  setUsernameAvailabilityError('');
+                }}
                 placeholder="@ username"
                 dir="ltr"
-                className={['w-full rounded-2xl border bg-gray-50 px-4 py-3 text-left text-sm font-bold outline-none focus:bg-white', usernameValidation.error ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-sky-400'].join(' ')}
+                className={['w-full rounded-2xl border bg-gray-50 px-4 py-3 text-left text-sm font-bold outline-none focus:bg-white', usernameError ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-sky-400'].join(' ')}
               />
-              <p className={['text-xs font-bold leading-6', usernameValidation.error ? 'text-red-600' : 'text-gray-500'].join(' ')}>
-                {usernameValidation.error || 'اختياري: حروف إنجليزية، أرقام وشرطة سفلية فقط. يبدأ بحرف، من 4 إلى 24 حرفاً.'}
+              <p className={['text-xs font-bold leading-6', usernameError ? 'text-red-600' : 'text-gray-500'].join(' ')}>
+                {checkingUsername
+                  ? 'جارِ التحقق من توفر اسم المستخدم...'
+                  : usernameError || 'حروف إنجليزية، أرقام وشرطة سفلية فقط. يبدأ بحرف، من 6 إلى 24 حرفاً، وغير مستخدم في الحسابات أو المجموعات أو القنوات.'}
               </p>
             </>
           ) : null}
@@ -4321,9 +4378,11 @@ function CreateSpaceModal({ type, onClose, onCreate }) {
             <button type="button" onClick={() => setStep((value) => Math.max(1, value - 1))} className="rounded-2xl bg-gray-100 px-5 py-3 text-sm font-black text-gray-700 hover:bg-gray-200">السابق</button>
           ) : null}
           {step < 3 ? (
-            <button type="button" disabled={!canContinue} onClick={() => setStep((value) => Math.min(3, value + 1))} className="mr-auto rounded-2xl bg-red-700 px-6 py-3 text-sm font-black text-white hover:bg-red-800 disabled:opacity-50">التالي</button>
+            <button type="button" disabled={!canContinue} onClick={goNext} className="mr-auto rounded-2xl bg-red-700 px-6 py-3 text-sm font-black text-white hover:bg-red-800 disabled:opacity-50">
+              {checkingUsername ? 'جارِ التحقق...' : 'التالي'}
+            </button>
           ) : (
-            <button type="button" disabled={saving || name.trim().length < 3} onClick={submit} className="mr-auto rounded-2xl bg-red-700 px-6 py-3 text-sm font-black text-white hover:bg-red-800 disabled:opacity-50">
+            <button type="button" disabled={saving || name.trim().length < 5 || !!usernameError} onClick={submit} className="mr-auto rounded-2xl bg-red-700 px-6 py-3 text-sm font-black text-white hover:bg-red-800 disabled:opacity-50">
               {saving ? 'جاري الإنشاء...' : isChannel ? 'إنشاء القناة' : 'إنشاء المجموعة'}
             </button>
           )}
