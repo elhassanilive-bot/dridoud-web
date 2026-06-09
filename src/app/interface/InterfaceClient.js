@@ -5989,6 +5989,117 @@ function SettingsLoading({ label }) {
   );
 }
 
+function SecurityLoginPanel({
+  settings,
+  sessions,
+  loading,
+  busy,
+  code,
+  onCodeChange,
+  onToggleLoginAlerts,
+  onRequestCode,
+  onEnableTwoFactor,
+  onDisableTwoFactor,
+  onTerminateSession,
+  onTerminateOtherSessions,
+  onPasswordReset,
+}) {
+  return (
+    <div className="mt-4 space-y-4">
+      {loading ? <SettingsLoading label="جارٍ تحميل إعدادات الأمان..." /> : null}
+      <SettingsCard title="التحقق بخطوتين" hint="الطريقة المدعومة هنا هي البريد الإلكتروني فقط، بدون SMS.">
+        <div className="rounded-3xl border border-sky-100 bg-sky-50 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="text-right">
+              <p className="text-base font-black text-gray-950">التحقق بالبريد الإلكتروني</p>
+              <p className="mt-1 text-sm font-bold leading-7 text-gray-600">
+                عند تفعيله سيتم طلب رمز يصل إلى بريدك عند تسجيل الدخول أو العمليات الحساسة.
+              </p>
+            </div>
+            <span className={['rounded-full px-3 py-1 text-xs font-black', settings.two_factor_enabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'].join(' ')}>
+              {settings.two_factor_enabled ? 'مفعل' : 'غير مفعل'}
+            </span>
+          </div>
+          {!settings.two_factor_enabled ? (
+            <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto_auto]">
+              <input
+                value={code}
+                onChange={(event) => onCodeChange(event.target.value.toUpperCase().slice(0, 8))}
+                placeholder="رمز التحقق من البريد"
+                className="rounded-2xl border border-sky-100 bg-white px-4 py-3 text-center text-lg font-black tracking-[0.35em] text-gray-900 outline-none focus:border-sky-400"
+                dir="ltr"
+              />
+              <button type="button" disabled={busy} onClick={onRequestCode} className="rounded-2xl bg-white px-4 py-3 text-sm font-black text-sky-700 ring-1 ring-sky-100 hover:bg-sky-100 disabled:opacity-60">
+                إرسال الرمز
+              </button>
+              <button type="button" disabled={busy} onClick={onEnableTwoFactor} className="rounded-2xl bg-red-700 px-4 py-3 text-sm font-black text-white hover:bg-red-800 disabled:opacity-60">
+                تفعيل
+              </button>
+            </div>
+          ) : (
+            <button type="button" disabled={busy} onClick={onDisableTwoFactor} className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm font-black text-red-700 hover:bg-red-100 disabled:opacity-60">
+              إيقاف التحقق بالبريد
+            </button>
+          )}
+        </div>
+      </SettingsCard>
+
+      <SettingsCard title="تنبيهات تسجيل الدخول" hint="أرسل تنبيهًا عند تسجيل الدخول من جهاز أو متصفح غير معروف.">
+        <SettingControl
+          control={{ key: 'login_notifications', label: 'تنبيهات تسجيل الدخول', hint: 'تنبيه عند جهاز جديد', type: 'toggle', defaultValue: true }}
+          value={settings.login_notifications}
+          onChange={onToggleLoginAlerts}
+        />
+      </SettingsCard>
+
+      <SettingsCard title="الجلسات النشطة" hint="إدارة الأجهزة والمتصفحات المتصلة بحسابك.">
+        <div className="space-y-2">
+          {sessions.length ? sessions.map((session) => (
+            <div key={session.id || session.session_id || session.created_at} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-gray-50 p-3">
+              <button
+                type="button"
+                disabled={session.is_current}
+                onClick={() => onTerminateSession(session.id || session.session_id)}
+                className="rounded-xl bg-red-50 px-3 py-2 text-xs font-black text-red-700 hover:bg-red-100 disabled:bg-gray-100 disabled:text-gray-400"
+              >
+                {session.is_current ? 'هذا الجهاز' : 'إنهاء'}
+              </button>
+              <div className="text-right">
+                <p className="text-sm font-black text-gray-900">{simplifySessionAgent(session.user_agent || session.device_label || session.device || '')}</p>
+                <p className="text-xs font-bold text-gray-500">{session.updated_at || session.created_at || '-'}</p>
+              </div>
+            </div>
+          )) : (
+            <p className="rounded-2xl bg-gray-50 p-4 text-center text-sm font-bold text-gray-500">لا توجد جلسات متاحة للعرض حالياً.</p>
+          )}
+        </div>
+        {sessions.length > 1 ? (
+          <button type="button" onClick={onTerminateOtherSessions} className="mt-3 rounded-2xl bg-red-50 px-4 py-3 text-sm font-black text-red-700 hover:bg-red-100">
+            إنهاء الجلسات الأخرى
+          </button>
+        ) : null}
+      </SettingsCard>
+
+      <SettingsCard title="إجراءات أخرى" hint="إرسال رابط إعادة تعيين كلمة المرور إلى بريدك.">
+        <button type="button" disabled={busy} onClick={onPasswordReset} className="rounded-2xl bg-gray-100 px-4 py-3 text-sm font-black text-gray-800 hover:bg-gray-200 disabled:opacity-60">
+          إرسال رابط إعادة تعيين كلمة المرور
+        </button>
+      </SettingsCard>
+    </div>
+  );
+}
+
+function simplifySessionAgent(userAgent = '') {
+  const ua = String(userAgent || '');
+  if (!ua.trim()) return 'جهاز غير معروف';
+  if (ua.includes('iPhone')) return 'iPhone';
+  if (ua.includes('Android')) return 'Android';
+  if (ua.includes('Windows')) return 'Windows PC';
+  if (ua.includes('Macintosh') || ua.includes('Mac OS')) return 'Mac';
+  if (ua.includes('Linux')) return 'Linux';
+  return ua.length > 70 ? `${ua.slice(0, 70)}...` : ua;
+}
+
 function AccountCollectionPanel({ itemKey, rows, loading, onRemove }) {
   const copy = {
     blocked_accounts: {
@@ -6466,6 +6577,10 @@ function SettingsDetailModal({ item, creatorStats, onClose }) {
   const [notificationLoading, setNotificationLoading] = useState(false);
   const [privacySettings, setPrivacySettings] = useState(() => ({ ...DEFAULT_PRIVACY_SETTINGS }));
   const [privacyLoading, setPrivacyLoading] = useState(false);
+  const [securitySettings, setSecuritySettings] = useState(() => ({ two_factor_enabled: false, two_factor_method: 'email', login_notifications: true }));
+  const [securitySessions, setSecuritySessions] = useState([]);
+  const [securityLoading, setSecurityLoading] = useState(false);
+  const [twoFactorCode, setTwoFactorCode] = useState('');
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -6511,6 +6626,175 @@ function SettingsDetailModal({ item, creatorStats, onClose }) {
     loadPrivacySettings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item.key]);
+
+  useEffect(() => {
+    if (item.key !== 'login_security') return;
+    loadSecuritySettings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.key]);
+
+  async function loadSecuritySettings() {
+    setSecurityLoading(true);
+    setError('');
+    try {
+      const client = await getSupabaseClient();
+      if (!client) throw new Error('no_client');
+      const { data } = await client.auth.getSession();
+      const user = data?.session?.user;
+      if (!user) throw new Error('no_session');
+      const settingsRes = await client
+        .from('security_settings')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (settingsRes.error) throw settingsRes.error;
+      const sessionsRes = await client.rpc('get_my_sessions');
+      setSecuritySettings({
+        two_factor_enabled: false,
+        two_factor_method: 'email',
+        login_notifications: true,
+        ...(settingsRes.data || {}),
+      });
+      setSecuritySessions(Array.isArray(sessionsRes.data) ? sessionsRes.data : []);
+    } catch (e) {
+      setError(normalizeInterfaceError(e));
+    } finally {
+      setSecurityLoading(false);
+    }
+  }
+
+  async function saveSecuritySettings(updates) {
+    const next = { ...securitySettings, ...updates, two_factor_method: 'email' };
+    setSecuritySettings(next);
+    setNotice('');
+    setError('');
+    try {
+      const client = await getSupabaseClient();
+      if (!client) throw new Error('no_client');
+      const { data } = await client.auth.getSession();
+      const user = data?.session?.user;
+      if (!user) throw new Error('no_session');
+      const res = await client.from('security_settings').upsert({
+        user_id: user.id,
+        ...next,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
+      if (res.error) throw res.error;
+      setNotice('تم تحديث إعدادات الأمان.');
+    } catch (e) {
+      setSecuritySettings(securitySettings);
+      setError(normalizeInterfaceError(e));
+    }
+  }
+
+  async function requestEmailTwoFactorCode() {
+    setBusy(true);
+    setNotice('');
+    setError('');
+    try {
+      const client = await getSupabaseClient();
+      if (!client) throw new Error('no_client');
+      const { error: reauthError } = await client.auth.reauthenticate();
+      if (reauthError) throw reauthError;
+      setNotice('تم إرسال رمز تحقق من 8 أحرف إلى بريد حسابك.');
+    } catch (e) {
+      setError(normalizeInterfaceError(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function enableEmailTwoFactor() {
+    const token = twoFactorCode.trim();
+    if (token.length < 6) {
+      setError('أدخل رمز التحقق الذي وصل إلى بريدك.');
+      return;
+    }
+    setBusy(true);
+    setNotice('');
+    setError('');
+    try {
+      const client = await getSupabaseClient();
+      if (!client) throw new Error('no_client');
+      const { data } = await client.auth.getSession();
+      const user = data?.session?.user;
+      if (!user) throw new Error('no_session');
+      const { error: updateError } = await client.auth.updateUser({
+        nonce: token,
+        data: { ...(user.user_metadata || {}), email_two_factor_enabled: true },
+      });
+      if (updateError) throw updateError;
+      setTwoFactorCode('');
+      await saveSecuritySettings({ two_factor_enabled: true, two_factor_method: 'email' });
+    } catch (e) {
+      setError(normalizeInterfaceError(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function disableEmailTwoFactor() {
+    setBusy(true);
+    setNotice('');
+    setError('');
+    try {
+      const client = await getSupabaseClient();
+      if (!client) throw new Error('no_client');
+      const { data } = await client.auth.getSession();
+      const user = data?.session?.user;
+      if (!user) throw new Error('no_session');
+      await client.auth.updateUser({ data: { ...(user.user_metadata || {}), email_two_factor_enabled: false } });
+      await saveSecuritySettings({ two_factor_enabled: false, two_factor_method: 'email' });
+    } catch (e) {
+      setError(normalizeInterfaceError(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function terminateSecuritySession(sessionId) {
+    const client = await getSupabaseClient();
+    if (!client || !sessionId) return;
+    const res = await client.rpc('terminate_session', { session_id: sessionId });
+    if (res.error) {
+      setError(normalizeInterfaceError(res.error));
+      return;
+    }
+    setSecuritySessions((prev) => prev.filter((session) => session.id !== sessionId));
+    setNotice('تم إنهاء الجلسة.');
+  }
+
+  async function terminateOtherSecuritySessions() {
+    const client = await getSupabaseClient();
+    if (!client) return;
+    const res = await client.rpc('terminate_all_sessions');
+    if (res.error) {
+      setError(normalizeInterfaceError(res.error));
+      return;
+    }
+    setNotice('تم إنهاء الجلسات الأخرى.');
+    loadSecuritySettings();
+  }
+
+  async function sendPasswordResetEmail() {
+    setBusy(true);
+    setNotice('');
+    setError('');
+    try {
+      const client = await getSupabaseClient();
+      if (!client) throw new Error('no_client');
+      const { data } = await client.auth.getSession();
+      const emailAddress = data?.session?.user?.email?.trim().toLowerCase();
+      if (!emailAddress) throw new Error('no_email');
+      const res = await client.auth.resetPasswordForEmail(emailAddress);
+      if (res.error) throw res.error;
+      setNotice('تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك.');
+    } catch (e) {
+      setError(normalizeInterfaceError(e));
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function loadPrivacySettings() {
     setPrivacyLoading(true);
@@ -6887,6 +7171,24 @@ function SettingsDetailModal({ item, creatorStats, onClose }) {
             />
           ) : null}
 
+          {item.key === 'login_security' ? (
+            <SecurityLoginPanel
+              settings={securitySettings}
+              sessions={securitySessions}
+              loading={securityLoading}
+              busy={busy}
+              code={twoFactorCode}
+              onCodeChange={setTwoFactorCode}
+              onToggleLoginAlerts={(value) => saveSecuritySettings({ login_notifications: value })}
+              onRequestCode={requestEmailTwoFactorCode}
+              onEnableTwoFactor={enableEmailTwoFactor}
+              onDisableTwoFactor={disableEmailTwoFactor}
+              onTerminateSession={terminateSecuritySession}
+              onTerminateOtherSessions={terminateOtherSecuritySessions}
+              onPasswordReset={sendPasswordResetEmail}
+            />
+          ) : null}
+
           {collectionKeys.includes(item.key) ? (
             <AccountCollectionPanel
               itemKey={item.key}
@@ -6896,7 +7198,7 @@ function SettingsDetailModal({ item, creatorStats, onClose }) {
             />
           ) : null}
 
-          {!['account_settings', 'account_management', 'creator_academy', 'notification_settings', 'privacy', 'activity_status', ...collectionKeys].includes(item.key) ? (
+          {!['account_settings', 'account_management', 'creator_academy', 'notification_settings', 'privacy', 'activity_status', 'login_security', ...collectionKeys].includes(item.key) ? (
             <SettingsControlsGrid itemKey={item.key} preferences={preferences} setPref={setPref} />
           ) : null}
 
@@ -6961,8 +7263,8 @@ function CreatorAcademyPanel({ stats }) {
       {tab === 'content' ? <CreatorContentStats stats={stats} /> : null}
       {tab === 'viewers' ? <CreatorViewersStats stats={stats} /> : null}
       {tab === 'followers' ? <CreatorFollowersStats stats={stats} /> : null}
-      {tab === 'inspiration' ? <CreatorComingSoon title="الإلهام" /> : null}
-      {tab === 'live' ? <CreatorComingSoon title="LIVE" /> : null}
+      {tab === 'inspiration' ? <CreatorInspirationPanel stats={stats} /> : null}
+      {tab === 'live' ? <CreatorLivePanel stats={stats} /> : null}
       {tab === 'rewards' ? <CreatorRewardsStats stats={stats} /> : null}
     </div>
   );
@@ -7098,13 +7400,60 @@ function CreatorRewardsStats({ stats }) {
   );
 }
 
-function CreatorComingSoon({ title }) {
+function CreatorInspirationPanel({ stats }) {
+  const ideas = [
+    { title: 'حوّل أفضل منشور إلى سلسلة', hint: stats.topPosts[0]?.title || 'اختر منشوراً حصل على تفاعل جيد واكتب جزءاً ثانياً.' },
+    { title: 'انشر مقالاً قصيراً مع صورة', hint: 'العناوين الفرعية والصور تزيد وقت القراءة وتفاعل المستخدمين.' },
+    { title: 'جرّب سؤالاً في النهاية', hint: 'اختم المنشور بسؤال واضح لرفع التعليقات الطبيعية.' },
+    { title: 'حوّل الفقرة الطويلة إلى نقاط', hint: 'المحتوى السهل القراءة يظهر أفضل في الويب والهاتف.' },
+  ];
+
   return (
-    <SettingsCard title={title} hint="هذه الميزة قادمة قريباً.">
-      <div className="rounded-3xl border border-dashed border-gray-200 bg-gray-50 p-8 text-center text-sm font-bold text-gray-500">
-        هذه الميزة قادمة قريباً.
-      </div>
-    </SettingsCard>
+    <div className="grid gap-4 lg:grid-cols-2">
+      <SettingsCard title="أفكار محتوى جاهزة" hint="اقتراحات مبنية على أداء حسابك الحالي.">
+        {ideas.map((idea) => (
+          <div key={idea.title} className="rounded-2xl bg-gray-50 p-3">
+            <p className="text-sm font-black text-gray-950">{idea.title}</p>
+            <p className="mt-1 text-xs font-bold leading-6 text-gray-600">{idea.hint}</p>
+          </div>
+        ))}
+      </SettingsCard>
+      <SettingsCard title="أفضل وقت للنشر" hint="توصية مبسطة إلى حين توفر تحليلات أكثر.">
+        <MiniTrend rows={[
+          ['الصباح', Math.max(8, Math.round(stats.totalViews * 0.12))],
+          ['الظهيرة', Math.max(14, Math.round(stats.totalViews * 0.22))],
+          ['المساء', Math.max(28, Math.round(stats.totalViews * 0.48))],
+          ['الليل', Math.max(18, Math.round(stats.totalViews * 0.30))],
+        ]} />
+        <p className="rounded-2xl bg-sky-50 p-3 text-xs font-bold leading-6 text-sky-800">
+          جرّب النشر بين 18:00 و22:00، ثم راقب التعليقات والمشاهدات خلال أول ساعة.
+        </p>
+      </SettingsCard>
+    </div>
+  );
+}
+
+function CreatorLivePanel({ stats }) {
+  return (
+    <div className="space-y-4">
+      <SettingsCard title="جاهزية البث المباشر" hint="قائمة تحضير قبل فتح LIVE.">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <CreatorMetric label="متابعون محتملون" value={stats.followers} />
+          <CreatorMetric label="فيديوهات منشورة" value={stats.videoPosts} />
+          <CreatorMetric label="تفاعل إجمالي" value={stats.totalLikes + stats.totalComments + stats.totalShares} />
+        </div>
+      </SettingsCard>
+      <SettingsCard title="قائمة تحقق للبث" hint="خطوات سريعة لجعل البث أفضل.">
+        {[
+          'اكتب عنواناً واضحاً قبل بدء البث.',
+          'اختبر الصوت والإضاءة والاتصال.',
+          'ابدأ بسؤال مباشر لجذب التعليقات.',
+          'احفظ أبرز لحظة لاحقاً كريلز قصير.',
+        ].map((text) => (
+          <p key={text} className="rounded-2xl bg-gray-50 p-3 text-sm font-bold text-gray-700">{text}</p>
+        ))}
+      </SettingsCard>
+    </div>
   );
 }
 
