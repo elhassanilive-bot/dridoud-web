@@ -2,7 +2,7 @@
 
 export const metadata = {
   title: 'الحساب',
-  description: 'إنشاء حساب أو تسجيل الدخول إلى دريدود عبر واجهة ويب متصلة بـ Supabase.',
+  description: 'إنشاء حساب أو تسجيل الدخول إلى دريدود بأمان.',
   alternates: { canonical: '/account' },
 };
 

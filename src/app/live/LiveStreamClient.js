@@ -165,7 +165,7 @@ export default function LiveStreamClient() {
     setStarting(true);
     try {
       const supabase = await getSupabaseClient();
-      if (!supabase) throw new Error('خدمة Supabase غير مهيأة على الويب.');
+      if (!supabase) throw new Error('خدمة البث غير مهيأة حالياً.');
 
       const { data: sessionData } = await supabase.auth.getSession();
       const session = sessionData?.session;
@@ -242,7 +242,7 @@ export default function LiveStreamClient() {
     setEnding(true);
     try {
       const supabase = await getSupabaseClient();
-      if (!supabase) throw new Error('خدمة Supabase غير متاحة.');
+      if (!supabase) throw new Error('خدمة البث غير متاحة حالياً.');
       const { data: sessionData } = await supabase.auth.getSession();
       const session = sessionData?.session;
       if (!session) throw new Error('انتهت جلسة الدخول.');

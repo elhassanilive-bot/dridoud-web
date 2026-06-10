@@ -669,6 +669,7 @@ export default function InterfaceClient() {
   const [deleteTargetPost, setDeleteTargetPost] = useState(null);
   const [blockTargetPost, setBlockTargetPost] = useState(null);
   const [createSpaceType, setCreateSpaceType] = useState(null);
+  const [selectedSetting, setSelectedSetting] = useState(null);
   const LOAD_STEP = 30;
   const [fetchLimit, setFetchLimit] = useState(LOAD_STEP);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
@@ -1447,6 +1448,10 @@ export default function InterfaceClient() {
   const unreadNotificationsCount = useMemo(
     () => notifications.reduce((sum, item) => sum + (item?.is_read ? 0 : 1), 0),
     [notifications]
+  );
+  const creatorStats = useMemo(
+    () => buildCreatorStats(feedPosts, me, commentsByPost, likeCounts),
+    [feedPosts, me, commentsByPost, likeCounts]
   );
   const mentionMap = useMemo(() => {
     const map = {};
@@ -2351,7 +2356,7 @@ export default function InterfaceClient() {
                   <span aria-hidden="true" className="text-2xl">⚠️</span>
                 </div>
                 <p className="mt-4 text-base font-bold leading-8 text-amber-800">
-                  موقع دريدود قيد التطوير والتحسين حالياً، وما زلنا نعمل على إكمال الإصلاحات وتقديم تجربة أسرع وأفضل. شكراً لصبركم ودعمكم.
+                  نعمل باستمرار على تحسين دريدود وتقديم تجربة أسرع وأسهل. قد تلاحظ تحديثات جديدة في الواجهة والميزات خلال الفترة القادمة.
                 </p>
                 <div className="mt-6 flex justify-start">
                   <button
@@ -2412,6 +2417,7 @@ export default function InterfaceClient() {
                 me={me}
                 commentsByPost={commentsByPost}
                 likeCounts={likeCounts}
+                onSelectSetting={setSelectedSetting}
               />
               <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-2">
                 <h3 className="px-2 pb-2 text-sm font-black text-gray-900">المعلومات والدعم</h3>
@@ -2532,6 +2538,7 @@ export default function InterfaceClient() {
             me={me}
             commentsByPost={commentsByPost}
             likeCounts={likeCounts}
+            onSelectSetting={setSelectedSetting}
           />
         </aside>
         ) : null}
@@ -2562,6 +2569,14 @@ export default function InterfaceClient() {
             const created = await createSpace(createSpaceType, values);
             if (created) setCreateSpaceType(null);
           }}
+        />
+      ) : null}
+
+      {selectedSetting ? (
+        <SettingsDetailModal
+          item={selectedSetting}
+          creatorStats={creatorStats}
+          onClose={() => setSelectedSetting(null)}
         />
       ) : null}
 
@@ -5916,7 +5931,7 @@ function PrivacySettingsPanel({ values, loading, onChange }) {
           onChange={(value) => onChange('account_type', value)}
         />
       </SettingsCard>
-      <SettingsCard title="تفاصيل قسم حول" hint="إذا جعلت قسم حول خاصاً سيتم تعطيل تفاصيله للآخرين.">
+      <SettingsCard title="تفاصيل قسم حول" hint="عند جعل قسم حول خاصاً لن تظهر تفاصيله للآخرين.">
         <SettingControl
           control={{ key: 'profile_details_visibility', label: 'إظهار قسم حول', type: 'select', defaultValue: 'public', options: PUBLIC_PRIVATE_OPTIONS }}
           value={values.profile_details_visibility}
@@ -6013,7 +6028,7 @@ function SecurityLoginPanel({
             <div className="text-right">
               <p className="text-base font-black text-gray-950">التحقق بالبريد الإلكتروني</p>
               <p className="mt-1 text-sm font-bold leading-7 text-gray-600">
-                عند تفعيله سيتم طلب رمز يصل إلى بريدك عند تسجيل الدخول أو العمليات الحساسة.
+                عند تفعيله سنطلب رمزاً يصل إلى بريدك عند تسجيل الدخول أو تنفيذ إجراء حساس.
               </p>
             </div>
             <span className={['rounded-full px-3 py-1 text-xs font-black', settings.two_factor_enabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'].join(' ')}>
@@ -6474,9 +6489,10 @@ function DeleteIcon({ className = '' }) {
     </svg>
   );
 }
-function SettingsSidebar({ posts = [], me = null, commentsByPost = {}, likeCounts = {} }) {
-  const [selectedSetting, setSelectedSetting] = useState(null);
+function SettingsSidebar({ posts = [], me = null, commentsByPost = {}, likeCounts = {}, onSelectSetting = null }) {
+  const [localSelectedSetting, setLocalSelectedSetting] = useState(null);
   const creatorStats = useMemo(() => buildCreatorStats(posts, me, commentsByPost, likeCounts), [posts, me, commentsByPost, likeCounts]);
+  const selectSetting = onSelectSetting || setLocalSelectedSetting;
   const sections = [
     {
       title: 'الإعدادات والحساب',
@@ -6538,7 +6554,7 @@ function SettingsSidebar({ posts = [], me = null, commentsByPost = {}, likeCount
                 <div key={item.key} className="overflow-hidden rounded-xl bg-white">
                   <button
                     type="button"
-                    onClick={() => setSelectedSetting(item)}
+                    onClick={() => selectSetting(item)}
                     className="flex w-full items-center justify-between px-3 py-2 text-right hover:bg-gray-50 [unicode-bidi:isolate-override]"
                     dir="rtl"
                     style={{ direction: 'rtl', unicodeBidi: 'isolate-override' }}
@@ -6558,8 +6574,8 @@ function SettingsSidebar({ posts = [], me = null, commentsByPost = {}, likeCount
           </div>
         ))}
       </div>
-      {selectedSetting ? (
-        <SettingsDetailModal item={selectedSetting} creatorStats={creatorStats} onClose={() => setSelectedSetting(null)} />
+      {!onSelectSetting && localSelectedSetting ? (
+        <SettingsDetailModal item={localSelectedSetting} creatorStats={creatorStats} onClose={() => setLocalSelectedSetting(null)} />
       ) : null}
     </div>
   );
@@ -7131,7 +7147,7 @@ function SettingsDetailModal({ item, creatorStats, onClose }) {
 
           {item.key === 'account_management' ? (
             <div className="mt-4 grid gap-4 lg:grid-cols-2">
-              <SettingsCard title="تغيير البريد الإلكتروني" hint="يرسل Supabase رسالة تأكيد إلى البريد الجديد.">
+              <SettingsCard title="تغيير البريد الإلكتروني" hint="سنرسل رسالة تأكيد إلى بريدك الجديد قبل اعتماد التغيير.">
                 <SettingsInput label="البريد الإلكتروني" value={email} onChange={setEmail} />
                 <button type="button" disabled={busy} onClick={updateEmail} className="rounded-2xl bg-sky-500 px-4 py-3 text-sm font-black text-white hover:bg-sky-600 disabled:opacity-60">تحديث البريد</button>
               </SettingsCard>
@@ -7378,7 +7394,7 @@ function CreatorRewardsStats({ stats }) {
           ['غير مؤهل', stats.notEligibleVideos],
         ]} />
         <p className="rounded-2xl bg-amber-50 p-3 text-xs font-bold leading-6 text-amber-800">
-          ملاحظة: أرباح الفيديوهات ستتوفر قريباً. نحن نجهز إطلاقاً آمناً وعادلاً للجميع.
+          ملاحظة: سيتم الإعلان عن أرباح الفيديوهات عند اكتمال شروط البرنامج وتوفره للحسابات المؤهلة.
         </p>
       </SettingsCard>
       <SettingsCard title="التقدم نحو أول دفعة" hint="يتم احتساب المشاهدات المؤهلة فقط">
@@ -7942,7 +7958,7 @@ function getSettingDetails(key) {
       actions: [{ label: 'فتح الخصوصية', href: '/privacy', primary: true }],
     },
     activity_status: {
-      description: 'إظهار أو إخفاء حالة النشاط وآخر ظهور حسب تفضيل المستخدم.',
+      description: 'تحكم في ظهور حالتك النشطة وآخر وقت كنت فيه متصلاً.',
       rows: [
         { label: 'إظهار آخر نشاط', value: 'اختياري' },
         { label: 'النقطة الخضراء', value: 'حسب الحالة' },
@@ -7950,7 +7966,7 @@ function getSettingDetails(key) {
       actions: [{ label: 'تعديل النشاط', href: '/account/me', primary: true }],
     },
     account_management: {
-      description: 'إدارة إجراءات الحساب الحساسة مثل تعطيل الحساب مؤقتاً أو طلب الحذف النهائي.',
+      description: 'يمكنك تغيير البريد وكلمة المرور أو إدارة تعطيل الحساب وحذفه بأمان.',
       rows: [
         { label: 'تعطيل الحساب', value: 'مؤقت' },
         { label: 'حذف الحساب', value: 'نهائي' },
@@ -7958,7 +7974,7 @@ function getSettingDetails(key) {
       actions: [{ label: 'إدارة الحساب', href: '/account/me', primary: true }],
     },
     login_security: {
-      description: 'حماية تسجيل الدخول عبر البريد الإلكتروني وتنبيهات الأجهزة غير المعروفة.',
+      description: 'فعّل التحقق بالبريد وتابع الأجهزة والمتصفحات المتصلة بحسابك.',
       rows: [
         { label: 'مصادقة البريد', value: 'متاحة' },
         { label: 'تنبيه جهاز جديد', value: 'مفعل' },
@@ -7966,7 +7982,7 @@ function getSettingDetails(key) {
       actions: [{ label: 'الأمان وتسجيل الدخول', href: '/security', primary: true }],
     },
     mentions: {
-      description: 'التحكم بمن يستطيع ذكرك في المنشورات والتعليقات والردود.',
+      description: 'اختر من يمكنه ذكرك أو استخدام الوسوم المرتبطة بحسابك.',
       rows: [
         { label: '@الذكر', value: 'الجميع' },
         { label: 'الوسوم', value: 'مفعلة' },
@@ -7974,7 +7990,7 @@ function getSettingDetails(key) {
       actions: [{ label: 'فتح الواجهة', href: '/interface', primary: true }],
     },
     video_controls: {
-      description: 'خيارات مشاهدة الفيديو: التشغيل التلقائي، الكتم الافتراضي، وتوفير البيانات.',
+      description: 'اضبط طريقة تشغيل الفيديو وجودته واستهلاك البيانات أثناء المشاهدة.',
       rows: [
         { label: 'التشغيل التلقائي', value: 'حسب الشبكة' },
         { label: 'جودة الفيديو', value: 'تلقائية' },
@@ -7982,7 +7998,7 @@ function getSettingDetails(key) {
       actions: [{ label: 'عرض الفيديوهات', href: '/interface', primary: true }],
     },
     translation_settings: {
-      description: 'إعدادات زر الترجمة والكشف التلقائي عن لغة المنشور.',
+      description: 'تحكم في ظهور زر الترجمة وطريقة التعامل مع لغات المنشورات.',
       rows: [
         { label: 'كشف اللغة', value: 'تلقائي' },
         { label: 'زر الترجمة', value: 'ظاهر عند الحاجة' },
@@ -7990,7 +8006,7 @@ function getSettingDetails(key) {
       actions: [{ label: 'تجربة الترجمة', href: '/interface', primary: true }],
     },
     creator_academy: {
-      description: 'مركز مبسط لنصائح النشر، المقالات، الفيديوهات، وتحسين جودة المحتوى.',
+      description: 'أدوات ونصائح تساعدك على تحسين المقالات والفيديوهات ورفع جودة المحتوى.',
       rows: [
         { label: 'إرشادات المقال', value: 'متاحة' },
         { label: 'نصائح الريلز', value: 'متاحة' },
@@ -8032,8 +8048,8 @@ function getSettingDetails(key) {
   };
 
   return map[key] || {
-    description: 'هذا القسم قيد التجهيز وسيتم ربطه بميزات التطبيق تدريجياً.',
-    rows: [{ label: 'الحالة', value: 'قيد التطوير' }],
+    description: 'افتح هذا القسم لإدارة خياراته وتعديل ما يناسب حسابك.',
+    rows: [{ label: 'الحالة', value: 'متاح' }],
     actions: [{ label: 'فتح', href: '/interface', primary: true }],
   };
 }
