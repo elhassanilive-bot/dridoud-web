@@ -685,6 +685,13 @@ export default function InterfaceClient() {
     if (group) setSelectedGroupId(group);
     const channel = searchParams.get('channel');
     if (channel) setSelectedChannelId(channel);
+    const settingKey = searchParams.get('setting');
+    if (settingKey) {
+      const settingItem = getSettingsItemByKey(settingKey);
+      if (settingItem) {
+        setSelectedSetting(settingItem);
+      }
+    }
   }, [searchParams]);
 
   function changeSection(sectionKey) {
@@ -6579,6 +6586,32 @@ function SettingsSidebar({ posts = [], me = null, commentsByPost = {}, likeCount
       ) : null}
     </div>
   );
+}
+
+function getSettingsItemByKey(key) {
+  const map = {
+    account_settings: { key: 'account_settings', label: 'إعدادات الحساب', icon: <UserIcon />, sub: 'الاسم، البريد، بيانات الملف' },
+    security_panel: { key: 'security_panel', label: 'لوحة الأمان', icon: <ShieldAlertIcon />, href: '/security', sub: 'تسجيل الدخول والتنبيهات' },
+    verification_requests: { key: 'verification_requests', label: 'إدارة طلبات التوثيق', icon: <BadgeIcon />, sub: 'متابعة حالة الطلبات' },
+    appearance: { key: 'appearance', label: 'مظهر التطبيق', icon: <ThemeIcon />, href: '/features', sub: 'الحجم، الشكل، التخزين' },
+    notification_settings: { key: 'notification_settings', label: 'إعدادات الإشعارات', icon: <BellIcon />, sub: 'المنشورات، الرسائل، النظام' },
+    verify_account: { key: 'verify_account', label: 'توثيق الحساب', icon: <VerifyIcon />, sub: 'الشروط ونسبة الجاهزية' },
+    languages: { key: 'languages', label: 'اللغات', icon: <LanguageIcon />, sub: 'العربية، English، Français' },
+    accounts: { key: 'accounts', label: 'الحسابات', icon: <AccountsIcon />, sub: 'التبديل وإدارة الجلسات' },
+    privacy: { key: 'privacy', label: 'خصوصية الحساب', icon: <LockIcon />, href: '/privacy', sub: 'عام / خاص / من يمكنه التفاعل' },
+    activity_status: { key: 'activity_status', label: 'النشاط والحالة', icon: <ActivityIcon />, sub: 'آخر ظهور وحالة النشاط' },
+    account_management: { key: 'account_management', label: 'إدارة الحساب', icon: <AccountsIcon />, sub: 'كلمة المرور، البريد، الحذف' },
+    login_security: { key: 'login_security', label: 'الأمان وتسجيل الدخول', icon: <ShieldIcon />, href: '/security', sub: 'التحقق بالبريد والجلسات' },
+    mentions: { key: 'mentions', label: 'الوسوم و @الذكر', icon: <AtIcon />, href: '/interface', sub: 'من يمكنه ذكرك' },
+    video_controls: { key: 'video_controls', label: 'التحكم بالفيديوهات', icon: <VideoSettingsIcon />, href: '/interface', sub: 'التشغيل التلقائي، كتم الصوت' },
+    translation_settings: { key: 'translation_settings', label: 'إعدادات الترجمة', icon: <LanguageIcon />, href: '/interface', sub: 'الكشف التلقائي وإظهار الزر' },
+    creator_academy: { key: 'creator_academy', label: 'أكاديمية المبدعين', icon: <AcademyIcon />, href: '/features', sub: 'نصائح وأدوات للنشر' },
+    blocked_accounts: { key: 'blocked_accounts', label: 'الحسابات المحظورة', icon: <BanIcon />, sub: 'عرض وإلغاء الحظر' },
+    hidden_posts: { key: 'hidden_posts', label: 'المنشورات المخفية', icon: <HiddenIcon />, sub: 'استرجاع المنشورات' },
+    saved_items: { key: 'saved_items', label: 'العناصر المحفوظة', icon: <BookmarkIcon />, sub: 'المنشورات، الريلز' },
+    watch_history: { key: 'watch_history', label: 'سجل المشاهدات', icon: <HistoryIcon />, sub: 'آخر الفيديوهات التي شاهدتها' },
+  };
+  return map[key] || null;
 }
 
 function SettingsDetailModal({ item, creatorStats, onClose }) {
