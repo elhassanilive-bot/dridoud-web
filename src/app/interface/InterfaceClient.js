@@ -6497,22 +6497,22 @@ function SettingsSidebar({ posts = [], me = null, commentsByPost = {}, likeCount
     {
       title: 'الإعدادات والحساب',
       items: [
-        { key: 'account_settings', label: 'إعدادات الحساب', icon: <UserIcon />, href: '/account/me', sub: 'الاسم، البريد، بيانات الملف' },
+        { key: 'account_settings', label: 'إعدادات الحساب', icon: <UserIcon />, sub: 'الاسم، البريد، بيانات الملف' },
         { key: 'security_panel', label: 'لوحة الأمان', icon: <ShieldAlertIcon />, href: '/security', sub: 'تسجيل الدخول والتنبيهات' },
-        { key: 'verification_requests', label: 'إدارة طلبات التوثيق', icon: <BadgeIcon />, href: '/account/me', sub: 'متابعة حالة الطلبات' },
+        { key: 'verification_requests', label: 'إدارة طلبات التوثيق', icon: <BadgeIcon />, sub: 'متابعة حالة الطلبات' },
         { key: 'appearance', label: 'مظهر التطبيق', icon: <ThemeIcon />, href: '/features', sub: 'الحجم، الشكل، التخزين' },
-        { key: 'notification_settings', label: 'إعدادات الإشعارات', icon: <BellIcon />, href: '/account/me', sub: 'المنشورات، الرسائل، النظام' },
-        { key: 'verify_account', label: 'توثيق الحساب', icon: <VerifyIcon />, href: '/account/me', sub: 'الشروط ونسبة الجاهزية' },
-        { key: 'languages', label: 'اللغات', icon: <LanguageIcon />, href: '/account/me', sub: 'العربية، English، Français' },
-        { key: 'accounts', label: 'الحسابات', icon: <AccountsIcon />, href: '/account/me', sub: 'التبديل وإدارة الجلسات' },
+        { key: 'notification_settings', label: 'إعدادات الإشعارات', icon: <BellIcon />, sub: 'المنشورات، الرسائل، النظام' },
+        { key: 'verify_account', label: 'توثيق الحساب', icon: <VerifyIcon />, sub: 'الشروط ونسبة الجاهزية' },
+        { key: 'languages', label: 'اللغات', icon: <LanguageIcon />, sub: 'العربية، English، Français' },
+        { key: 'accounts', label: 'الحسابات', icon: <AccountsIcon />, sub: 'التبديل وإدارة الجلسات' },
       ],
     },
     {
       title: 'الأمان والحماية',
       items: [
         { key: 'privacy', label: 'خصوصية الحساب', icon: <LockIcon />, href: '/privacy', sub: 'عام / خاص / من يمكنه التفاعل' },
-        { key: 'activity_status', label: 'النشاط والحالة', icon: <ActivityIcon />, href: '/account/me', sub: 'آخر ظهور وحالة النشاط' },
-        { key: 'account_management', label: 'إدارة الحساب', icon: <AccountsIcon />, href: '/account/me', sub: 'كلمة المرور، البريد، الحذف' },
+        { key: 'activity_status', label: 'النشاط والحالة', icon: <ActivityIcon />, sub: 'آخر ظهور وحالة النشاط' },
+        { key: 'account_management', label: 'إدارة الحساب', icon: <AccountsIcon />, sub: 'كلمة المرور، البريد، الحذف' },
         { key: 'login_security', label: 'الأمان وتسجيل الدخول', icon: <ShieldIcon />, href: '/security', sub: 'التحقق بالبريد والجلسات' },
       ],
     },
@@ -6528,17 +6528,17 @@ function SettingsSidebar({ posts = [], me = null, commentsByPost = {}, likeCount
     {
       title: 'الحظر',
       items: [
-        { key: 'blocked_accounts', label: 'الحسابات المحظورة', icon: <BanIcon />, href: '/account/me', sub: 'عرض وإلغاء الحظر' },
-        { key: 'hidden_posts', label: 'المنشورات المخفية', icon: <HiddenIcon />, href: '/account/me', sub: 'استرجاع المنشورات' },
+        { key: 'blocked_accounts', label: 'الحسابات المحظورة', icon: <BanIcon />, sub: 'عرض وإلغاء الحظر' },
+        { key: 'hidden_posts', label: 'المنشورات المخفية', icon: <HiddenIcon />, sub: 'استرجاع المنشورات' },
       ],
     },
     {
       title: 'محفوظاتك',
-      items: [{ key: 'saved_items', label: 'العناصر المحفوظة', icon: <BookmarkIcon />, href: '/account/me', sub: 'المنشورات، الريلز' }],
+      items: [{ key: 'saved_items', label: 'العناصر المحفوظة', icon: <BookmarkIcon />, sub: 'المنشورات، الريلز' }],
     },
     {
       title: 'السجل',
-      items: [{ key: 'watch_history', label: 'سجل المشاهدات', icon: <HistoryIcon />, href: '/account/me', sub: 'آخر الفيديوهات التي شاهدتها' }],
+      items: [{ key: 'watch_history', label: 'سجل المشاهدات', icon: <HistoryIcon />, sub: 'آخر الفيديوهات التي شاهدتها' }],
     },
   ];
 
@@ -7860,16 +7860,17 @@ function SettingItemContent({ item }) {
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
         {details.actions.map((action) => (
-          <Link
+          <button
             key={action.label}
-            href={action.href || item.href}
+            type="button"
+            onClick={(event) => event.preventDefault()}
             className={[
               'rounded-full px-3 py-2 text-xs font-black transition',
               action.primary ? 'bg-red-700 text-white hover:bg-red-800' : 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50',
             ].join(' ')}
           >
             {action.label}
-          </Link>
+          </button>
         ))}
       </div>
     </div>
@@ -7885,7 +7886,7 @@ function getSettingDetails(key) {
         { label: 'تغيير البريد', value: 'آمن' },
         { label: 'تغيير كلمة المرور', value: 'يتطلب تأكيد' },
       ],
-      actions: [{ label: 'فتح الحساب', href: '/account/me', primary: true }],
+      actions: [{ label: 'فتح الحساب', primary: true }],
     },
     security_panel: {
       description: 'عرض حالة الأمان والتنبيهات والجلسات النشطة للمساعدة في حماية الحساب.',
@@ -7902,7 +7903,7 @@ function getSettingDetails(key) {
         { label: 'حالة الطلب', value: 'لا يوجد طلب' },
         { label: 'المراجعة', value: 'يدوية' },
       ],
-      actions: [{ label: 'إدارة الطلبات', href: '/account/me', primary: true }],
+      actions: [{ label: 'إدارة الطلبات', primary: true }],
     },
     appearance: {
       description: 'إعدادات المظهر وحجم الخط وشكل الواجهة ووضع توفير البيانات وتنظيف الكاش.',
@@ -7920,7 +7921,7 @@ function getSettingDetails(key) {
         { label: 'إشعارات النظام', value: 'مفعلة' },
         { label: 'رسائل جديدة', value: 'فورية' },
       ],
-      actions: [{ label: 'إدارة الإشعارات', href: '/account/me', primary: true }],
+      actions: [{ label: 'إدارة الإشعارات', primary: true }],
     },
     verify_account: {
       description: 'عرض شروط توثيق الحساب ونسبة الجاهزية قبل إرسال طلب التوثيق.',
@@ -7929,7 +7930,7 @@ function getSettingDetails(key) {
         { label: 'اسم حقيقي', value: 'مطلوب' },
         { label: 'نشاط منتظم', value: 'مهم' },
       ],
-      actions: [{ label: 'بدء التوثيق', href: '/account/me', primary: true }],
+      actions: [{ label: 'بدء التوثيق', primary: true }],
     },
     languages: {
       description: 'اختيار لغة الواجهة للويب والتطبيق مع الحفاظ على اتجاه النصوص الصحيح.',
@@ -7938,7 +7939,7 @@ function getSettingDetails(key) {
         { label: 'English', value: 'مدعومة' },
         { label: 'Français', value: 'مدعومة' },
       ],
-      actions: [{ label: 'إدارة اللغة', href: '/account/me', primary: true }],
+      actions: [{ label: 'إدارة اللغة', primary: true }],
     },
     accounts: {
       description: 'إدارة الحسابات والجلسات والتبديل بين الحسابات عند توفرها.',
@@ -7946,7 +7947,7 @@ function getSettingDetails(key) {
         { label: 'الحساب الحالي', value: 'نشط' },
         { label: 'الجلسات', value: 'متابعة' },
       ],
-      actions: [{ label: 'فتح الحسابات', href: '/account/me', primary: true }],
+      actions: [{ label: 'فتح الحسابات', primary: true }],
     },
     privacy: {
       description: 'تحديد من يمكنه مشاهدة معلومات حول، الدولة، المدينة، الروابط، والتفاعل مع الحساب.',
@@ -7963,7 +7964,7 @@ function getSettingDetails(key) {
         { label: 'إظهار آخر نشاط', value: 'اختياري' },
         { label: 'النقطة الخضراء', value: 'حسب الحالة' },
       ],
-      actions: [{ label: 'تعديل النشاط', href: '/account/me', primary: true }],
+      actions: [{ label: 'تعديل النشاط', primary: true }],
     },
     account_management: {
       description: 'يمكنك تغيير البريد وكلمة المرور أو إدارة تعطيل الحساب وحذفه بأمان.',
@@ -7971,7 +7972,7 @@ function getSettingDetails(key) {
         { label: 'تعطيل الحساب', value: 'مؤقت' },
         { label: 'حذف الحساب', value: 'نهائي' },
       ],
-      actions: [{ label: 'إدارة الحساب', href: '/account/me', primary: true }],
+      actions: [{ label: 'إدارة الحساب', primary: true }],
     },
     login_security: {
       description: 'فعّل التحقق بالبريد وتابع الأجهزة والمتصفحات المتصلة بحسابك.',
@@ -8019,7 +8020,7 @@ function getSettingDetails(key) {
         { label: 'قائمة الحظر', value: 'قابلة للإدارة' },
         { label: 'منع التفاعل', value: 'مفعل' },
       ],
-      actions: [{ label: 'إدارة الحظر', href: '/account/me', primary: true }],
+      actions: [{ label: 'إدارة الحظر', primary: true }],
     },
     hidden_posts: {
       description: 'عرض المنشورات التي أخفيتها وإعادتها للظهور عند الحاجة.',
@@ -8027,7 +8028,7 @@ function getSettingDetails(key) {
         { label: 'المنشورات المخفية', value: 'قائمة خاصة' },
         { label: 'استرجاع الظهور', value: 'متاح' },
       ],
-      actions: [{ label: 'عرض المخفية', href: '/account/me', primary: true }],
+      actions: [{ label: 'عرض المخفية', primary: true }],
     },
     saved_items: {
       description: 'مكتبة العناصر المحفوظة من المنشورات والريلز والروابط المهمة.',
@@ -8035,7 +8036,7 @@ function getSettingDetails(key) {
         { label: 'المنشورات', value: 'محفوظة' },
         { label: 'الريلز', value: 'محفوظة' },
       ],
-      actions: [{ label: 'فتح المحفوظات', href: '/account/me', primary: true }],
+      actions: [{ label: 'فتح المحفوظات', primary: true }],
     },
     watch_history: {
       description: 'سجل الفيديوهات التي شاهدتها مؤخراً مع إمكانية الرجوع إليها.',
@@ -8043,7 +8044,7 @@ function getSettingDetails(key) {
         { label: 'آخر المشاهدات', value: 'مرتبة زمنياً' },
         { label: 'تنظيف السجل', value: 'اختياري' },
       ],
-      actions: [{ label: 'فتح السجل', href: '/account/me', primary: true }],
+      actions: [{ label: 'فتح السجل', primary: true }],
     },
   };
 
@@ -8272,6 +8273,7 @@ function ShareComposerModal({ post, quote, onChangeQuote, onClose, onShareNow, o
     </div>
   );
 }
+
 
 
 
