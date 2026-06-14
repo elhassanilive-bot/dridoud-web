@@ -8,34 +8,40 @@
   links: {
     android: "",
     ios: "",
-    apk: "/apk/dridoud-v2.7.0-arm64-v8a.apk",
+    apk: "/apk/dridoud-v2.8.2.apk",
   },
   apkVariants: [
     {
       id: "arm64",
       label: "نسخة الأجهزة الحديثة (موصى بها)",
       helper: "ARM64-v8a • أغلب هواتف Android الحديثة",
-      link: "/apk/dridoud-v2.7.0-arm64-v8a.apk",
+      link: "/apk/dridoud-v2.8.2-arm64-v8a.apk",
     },
     {
       id: "armeabi",
       label: "نسخة الأجهزة الأقدم",
       helper: "armeabi-v7a • لأجهزة Android الأقدم",
-      link: "/apk/dridoud-v2.7.0-armeabi-v7a.apk",
+      link: "/apk/dridoud-v2.8.2-armeabi-v7a.apk",
     },
     {
       id: "x86",
       label: "نسخة المحاكيات وبعض الأجهزة الخاصة",
       helper: "x86_64 • غالبًا للمحاكي",
-      link: "/apk/dridoud-v2.7.0-x86_64.apk",
+      link: "/apk/dridoud-v2.8.2-x86_64.apk",
     },
   ],
   versions: [
     {
+      version: "2.8.2",
+      date: "2026-06-14",
+      description: "الإصدار الرابع من تطبيق دريدود مع أحدث التحسينات ونسخ APK محدثة للتنزيل.",
+      downloadLink: "/apk/dridoud-v2.8.2.apk",
+    },
+    {
       version: "2.7.0",
       date: "2026-05-21",
-      description: "الإصدار الثالث من تطبيق دريدود بصيغ APK متعددة لتوافق أفضل مع مختلف الأجهزة.",
-      downloadLink: "/apk/dridoud-v2.7.0-arm64-v8a.apk",
+      description: "لم يعد هذا الإصدار متاحاً. يرجى تنزيل أحدث إصدار متاح.",
+      downloadLink: null,
     },
     {
       version: "2.0.0",

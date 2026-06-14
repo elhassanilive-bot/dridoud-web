@@ -32,12 +32,13 @@ const copy = {
       ['تطبيق آمن مع إشعارات فورية وتأمين الحسابات.', 'متوفر لجميع الأجهزة واللغات.'],
     ],
     apkVariants: [
-      ['نسخة الأجهزة الحديثة (موصى بها)', 'ARM64-v8a • أغلب هواتف Android الحديثة', '/apk/dridoud-v2.7.0-arm64-v8a.apk'],
-      ['نسخة الأجهزة الأقدم', 'armeabi-v7a • لأجهزة Android الأقدم', '/apk/dridoud-v2.7.0-armeabi-v7a.apk'],
-      ['نسخة المحاكيات وبعض الأجهزة الخاصة', 'x86_64 • غالبًا للمحاكي', '/apk/dridoud-v2.7.0-x86_64.apk'],
+      ['نسخة الأجهزة الحديثة (موصى بها)', 'ARM64-v8a • أغلب هواتف Android الحديثة', '/apk/dridoud-v2.8.2-arm64-v8a.apk'],
+      ['نسخة الأجهزة الأقدم', 'armeabi-v7a • لأجهزة Android الأقدم', '/apk/dridoud-v2.8.2-armeabi-v7a.apk'],
+      ['نسخة المحاكيات وبعض الأجهزة الخاصة', 'x86_64 • غالبًا للمحاكي', '/apk/dridoud-v2.8.2-x86_64.apk'],
     ],
     versions: [
-      ['2.7.0', '2026-05-21', 'الإصدار الثالث من تطبيق دريدود بصيغ APK متعددة لتوافق أفضل مع مختلف الأجهزة.', '/apk/dridoud-v2.7.0-arm64-v8a.apk'],
+      ['2.8.2', '2026-06-14', 'الإصدار الرابع من تطبيق دريدود مع أحدث التحسينات ونسخ APK محدثة للتنزيل.', '/apk/dridoud-v2.8.2.apk'],
+      ['2.7.0', '2026-05-21', 'لم يعد هذا الإصدار متاحاً. يرجى تنزيل أحدث إصدار متاح.', null],
       ['2.0.0', '2026-05-09', 'لم يعد هذا الإصدار متاحاً. يرجى تنزيل أحدث إصدار متاح.', null],
       ['1.2.1', '2026-05-04', 'لم يعد هذا الإصدار متاحاً. يرجى تنزيل أحدث إصدار متاح.', null],
     ],
@@ -70,12 +71,13 @@ const copy = {
       ['Secure app with instant notifications and account protection.', 'Available for supported devices and languages.'],
     ],
     apkVariants: [
-      ['Modern devices build (recommended)', 'ARM64-v8a • Most modern Android phones', '/apk/dridoud-v2.7.0-arm64-v8a.apk'],
-      ['Older devices build', 'armeabi-v7a • Older Android devices', '/apk/dridoud-v2.7.0-armeabi-v7a.apk'],
-      ['Emulators and special devices build', 'x86_64 • Usually for emulators', '/apk/dridoud-v2.7.0-x86_64.apk'],
+      ['Modern devices build (recommended)', 'ARM64-v8a • Most modern Android phones', '/apk/dridoud-v2.8.2-arm64-v8a.apk'],
+      ['Older devices build', 'armeabi-v7a • Older Android devices', '/apk/dridoud-v2.8.2-armeabi-v7a.apk'],
+      ['Emulators and special devices build', 'x86_64 • Usually for emulators', '/apk/dridoud-v2.8.2-x86_64.apk'],
     ],
     versions: [
-      ['2.7.0', '2026-05-21', 'The third Dridoud APK release with multiple builds for better device compatibility.', '/apk/dridoud-v2.7.0-arm64-v8a.apk'],
+      ['2.8.2', '2026-06-14', 'The fourth Dridoud APK release with the latest improvements and updated downloadable builds.', '/apk/dridoud-v2.8.2.apk'],
+      ['2.7.0', '2026-05-21', 'This version is no longer available. Please download the latest version.', null],
       ['2.0.0', '2026-05-09', 'This version is no longer available. Please download the latest version.', null],
       ['1.2.1', '2026-05-04', 'This version is no longer available. Please download the latest version.', null],
     ],
@@ -88,7 +90,7 @@ export default function DownloadClient() {
   const buttons = [
     { label: t.android, helper: t.androidHelper, href: null },
     { label: t.ios, helper: t.iosHelper, href: null },
-    { label: t.apk, helper: t.apkHelper, href: '/apk/dridoud-v2.7.0-arm64-v8a.apk', apk: true },
+    { label: t.apk, helper: t.apkHelper, href: '/apk/dridoud-v2.8.2.apk', apk: true },
   ];
 
   return (

@@ -198,7 +198,7 @@ const homeCopy = {
 const downloadOptions = [
   { label: 'Google Play', platform: 'Android', href: null, variant: 'primary', available: false },
   { label: 'iOS', platform: 'iOS', href: null, variant: 'secondary', available: false },
-  { label: 'APK', platform: 'APK', href: '/apk/dridoud-v2.7.0-arm64-v8a.apk', variant: 'tertiary', available: true },
+  { label: 'APK', platform: 'APK', href: '/apk/dridoud-v2.8.2.apk', variant: 'tertiary', available: true },
 ];
 
 function ScreenshotCard({ item, copy }) {
@@ -321,7 +321,7 @@ export default function HomeClient() {
 
               <div className={['mt-10 flex flex-col gap-4 sm:flex-row', isArabic ? 'justify-center lg:justify-start' : 'justify-center lg:justify-start'].join(' ')}>
                 <Link
-                  href="/apk/dridoud-v2.7.0-arm64-v8a.apk"
+                  href="/apk/dridoud-v2.8.2.apk"
                   className="inline-flex items-center justify-center gap-3 rounded-lg bg-green-600 px-8 py-3 font-semibold text-white shadow-lg shadow-green-900/30 transition-colors hover:bg-green-500"
                 >
                   <Image src="/android-white.svg" alt="Android" width={20} height={20} className="h-5 w-5" />
